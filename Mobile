@@ -1,0 +1,655 @@
+-- ╔════════════════════════════════════════════════════════════╗
+-- ║        ZETHUB | CHECKING SYSTEM - MOBILE OPTIMIZED        ║
+-- ║              Compact UI for Mobile Devices                 ║
+-- ╚════════════════════════════════════════════════════════════╝
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Stats = game:GetService("Stats")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Deteksi Device
+local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
+local isPC = UserInputService.MouseEnabled and not UserInputService.TouchEnabled
+
+-- ═══════════════════════════════════════════════════════════
+-- CREATE UI (MOBILE OPTIMIZED)
+-- ═══════════════════════════════════════════════════════════
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ZETHUB_MOBILE_UI"
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.IgnoreGuiInset = true
+screenGui.DisplayOrder = 999
+
+-- Safe parent
+if syn and syn.protect_gui then
+    syn.protect_gui(screenGui)
+    screenGui.Parent = game:GetService("CoreGui")
+elseif gethui then
+    screenGui.Parent = gethui()
+else
+    screenGui.Parent = playerGui
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- BACKGROUND
+-- ═══════════════════════════════════════════════════════════
+local bgFrame = Instance.new("Frame")
+bgFrame.Name = "Background"
+bgFrame.Size = UDim2.new(1, 0, 1, 0)
+bgFrame.Position = UDim2.new(0, 0, 0, 0)
+bgFrame.BackgroundColor3 = Color3.fromRGB(8, 8, 10)
+bgFrame.BorderSizePixel = 0
+bgFrame.Parent = screenGui
+
+local bgGradient = Instance.new("UIGradient")
+bgGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(12, 12, 15)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(5, 5, 8))
+})
+bgGradient.Rotation = 90
+bgGradient.Parent = bgFrame
+
+-- ═══════════════════════════════════════════════════════════
+-- MAIN CONTAINER (COMPACT UNTUK MOBILE)
+-- ═══════════════════════════════════════════════════════════
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0.95, 0, 0.88, 0) -- Lebih lebar untuk mobile
+mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+mainFrame.BackgroundTransparency = 0.1
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = bgFrame
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.Parent = mainFrame
+
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Thickness = 1
+mainStroke.Color = Color3.fromRGB(255, 255, 255)
+mainStroke.Transparency = 0.75
+mainStroke.Parent = mainFrame
+
+-- ═══════════════════════════════════════════════════════════
+-- HEADER (COMPACT)
+-- ═══════════════════════════════════════════════════════════
+local header = Instance.new("Frame")
+header.Name = "Header"
+header.Size = UDim2.new(1, 0, 0, 45) -- Lebih pendek
+header.BackgroundColor3 = Color3.fromRGB(10, 10, 13)
+header.BackgroundTransparency = 0.3
+header.BorderSizePixel = 0
+header.Parent = mainFrame
+
+local headerCorner = Instance.new("UICorner")
+headerCorner.CornerRadius = UDim.new(0, 12)
+headerCorner.Parent = header
+
+local headerFix = Instance.new("Frame")
+headerFix.Size = UDim2.new(1, 0, 0, 12)
+headerFix.Position = UDim2.new(0, 0, 1, -12)
+headerFix.BackgroundColor3 = Color3.fromRGB(10, 10, 13)
+headerFix.BackgroundTransparency = 0.3
+headerFix.BorderSizePixel = 0
+headerFix.Parent = header
+
+-- Logo
+local logoLabel = Instance.new("TextLabel")
+logoLabel.Name = "Logo"
+logoLabel.Size = UDim2.new(0, 120, 1, 0)
+logoLabel.Position = UDim2.new(0, 12, 0, 0)
+logoLabel.BackgroundTransparency = 1
+logoLabel.Text = "ZETHUB"
+logoLabel.Font = Enum.Font.GothamBlack
+logoLabel.TextSize = 20 -- Lebih kecil
+logoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+logoLabel.TextXAlignment = Enum.TextXAlignment.Left
+logoLabel.Parent = header
+
+-- Divider
+local divider1 = Instance.new("Frame")
+divider1.Size = UDim2.new(0, 1, 0, 22)
+divider1.Position = UDim2.new(0, 140, 0.5, -11)
+divider1.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+divider1.BackgroundTransparency = 0.5
+divider1.BorderSizePixel = 0
+divider1.Parent = header
+
+-- Status: Bullet + Checking
+local statusContainer = Instance.new("Frame")
+statusContainer.Name = "StatusContainer"
+statusContainer.Size = UDim2.new(0, 110, 1, 0)
+statusContainer.Position = UDim2.new(0, 150, 0, 0)
+statusContainer.BackgroundTransparency = 1
+statusContainer.Parent = header
+
+-- Bullet hijau
+local greenBullet = Instance.new("Frame")
+greenBullet.Name = "GreenBullet"
+greenBullet.Size = UDim2.new(0, 10, 0, 10)
+greenBullet.Position = UDim2.new(0, 0, 0.5, -5)
+greenBullet.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
+greenBullet.BorderSizePixel = 0
+greenBullet.Parent = statusContainer
+
+local bulletCorner = Instance.new("UICorner")
+bulletCorner.CornerRadius = UDim.new(1, 0)
+bulletCorner.Parent = greenBullet
+
+-- Text Checking
+local checkingText = Instance.new("TextLabel")
+checkingText.Name = "CheckingText"
+checkingText.Size = UDim2.new(1, -15, 1, 0)
+checkingText.Position = UDim2.new(0, 15, 0, 0)
+checkingText.BackgroundTransparency = 1
+checkingText.Text = "Checking"
+checkingText.Font = Enum.Font.GothamBold
+checkingText.TextSize = 12 -- Lebih kecil
+checkingText.TextColor3 = Color3.fromRGB(0, 255, 100)
+checkingText.TextXAlignment = Enum.TextXAlignment.Left
+checkingText.Parent = statusContainer
+
+-- Animasi bullet
+task.spawn(function()
+    local on = true
+    while screenGui and screenGui.Parent do
+        local tween = TweenService:Create(greenBullet, TweenInfo.new(0.6), {
+            BackgroundTransparency = on and 0.5 or 0,
+            Size = on and UDim2.new(0, 8, 0, 8) or UDim2.new(0, 10, 0, 10)
+        })
+        tween:Play()
+        on = not on
+        task.wait(0.6)
+    end
+end)
+
+-- ═══════════════════════════════════════════════════════════
+-- INFO PANEL (2 BARIS - MOBILE FRIENDLY)
+-- ═══════════════════════════════════════════════════════════
+local infoPanel = Instance.new("Frame")
+infoPanel.Name = "InfoPanel"
+infoPanel.Size = UDim2.new(0.96, 0, 0, 70) -- Lebih pendek
+infoPanel.Position = UDim2.new(0.02, 0, 0, 52)
+infoPanel.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+infoPanel.BackgroundTransparency = 0.3
+infoPanel.BorderSizePixel = 0
+infoPanel.Parent = mainFrame
+
+local infoCorner = Instance.new("UICorner")
+infoCorner.CornerRadius = UDim.new(0, 8)
+infoCorner.Parent = infoPanel
+
+local infoStroke = Instance.new("UIStroke")
+infoStroke.Thickness = 1
+infoStroke.Color = Color3.fromRGB(255, 255, 255)
+infoStroke.Transparency = 0.85
+infoStroke.Parent = infoPanel
+
+-- Grid Layout untuk 4 kolom
+local infoLayout = Instance.new("UIGridLayout")
+infoLayout.CellSize = UDim2.new(0.25, -8, 1, -8)
+infoLayout.CellPadding = UDim2.new(0, 8, 0, 8)
+infoLayout.SortOrder = Enum.SortOrder.LayoutOrder
+infoLayout.FillDirection = Enum.FillDirection.Horizontal
+infoLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+infoLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+infoLayout.Parent = infoPanel
+
+-- Fungsi create info card (COMPACT)
+local function createInfoCard(name, value, icon, parent)
+    local card = Instance.new("Frame")
+    card.Name = name
+    card.BackgroundColor3 = Color3.fromRGB(28, 28, 33)
+    card.BackgroundTransparency = 0.3
+    card.BorderSizePixel = 0
+    card.Parent = parent
+    
+    local cCorner = Instance.new("UICorner")
+    cCorner.CornerRadius = UDim.new(0, 6)
+    cCorner.Parent = card
+    
+    -- Icon + Label (atas)
+    local topFrame = Instance.new("Frame")
+    topFrame.Name = "TopFrame"
+    topFrame.Size = UDim2.new(1, 0, 0, 20)
+    topFrame.Position = UDim2.new(0, 0, 0, 4)
+    topFrame.BackgroundTransparency = 1
+    topFrame.Parent = card
+    
+    local iconLabel = Instance.new("TextLabel")
+    iconLabel.Name = "Icon"
+    iconLabel.Size = UDim2.new(0, 16, 1, 0)
+    iconLabel.Position = UDim2.new(0.5, -22, 0, 0)
+    iconLabel.BackgroundTransparency = 1
+    iconLabel.Text = icon
+    iconLabel.Font = Enum.Font.GothamBold
+    iconLabel.TextSize = 14
+    iconLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+    iconLabel.TextXAlignment = Enum.TextXAlignment.Right
+    iconLabel.Parent = topFrame
+    
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Name = "Label"
+    nameLabel.Size = UDim2.new(0, 80, 1, 0)
+    nameLabel.Position = UDim2.new(0.5, 8, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Text = name
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.TextSize = 11
+    nameLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
+    nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+    nameLabel.Parent = topFrame
+    
+    -- Value (bawah)
+    local valueLabel = Instance.new("TextLabel")
+    valueLabel.Name = "Value"
+    valueLabel.Size = UDim2.new(1, 0, 0, 22)
+    valueLabel.Position = UDim2.new(0, 0, 0.5, 3)
+    valueLabel.BackgroundTransparency = 1
+    valueLabel.Text = value
+    valueLabel.Font = Enum.Font.GothamBlack
+    valueLabel.TextSize = 16
+    valueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    valueLabel.Parent = card
+    
+    return valueLabel, nameLabel, iconLabel
+end
+
+local pingValue, pingLabel, pingIcon = createInfoCard("NETWORK", "···ms", "📶", infoPanel)
+local fpsValue, fpsLabel, fpsIcon = createInfoCard("FPS", "···", "🎮", infoPanel)
+local serverValue, serverLabel, serverIcon = createInfoCard("SERVER", "Detecting...", "🌐", infoPanel)
+local deviceValue, deviceLabel, deviceIcon = createInfoCard("DEVICE", isPC and "PC" or "Mobile", "📱", infoPanel)
+
+-- ═══════════════════════════════════════════════════════════
+-- DETEKSI SERVER
+-- ═══════════════════════════════════════════════════════════
+local function detectServerRegion()
+    local flag, region = "🇮🇩", "Indonesia"
+    pcall(function()
+        local HttpService = game:GetService("HttpService")
+        local response = game:HttpGet("https://ipapi.co/json/")
+        local data = HttpService:JSONDecode(response)
+        
+        local countryMap = {
+            ["SG"] = {flag = "🇸🇬", name = "Singapore"},
+            ["ID"] = {flag = "🇮🇩", name = "Indonesia"},
+            ["US"] = {flag = "🇺", name = "United States"},
+            ["JP"] = {flag = "🇯🇵", name = "Japan"},
+            ["MY"] = {flag = "🇲🇾", name = "Malaysia"},
+            ["TH"] = {flag = "🇹🇭", name = "Thailand"},
+            ["PH"] = {flag = "🇵🇭", name = "Philippines"},
+        }
+        
+        local code = data.country_code
+        if code and countryMap[code] then
+            flag = countryMap[code].flag
+            region = countryMap[code].name
+        end
+    end)
+    return flag, region
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- LIVE UPDATE
+-- ═══════════════════════════════════════════════════════════
+local pingValues = {}
+local fpsValues = {}
+
+task.spawn(function()
+    task.wait(0.3)
+    local flag, region = detectServerRegion()
+    serverValue.Text = region
+    serverLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    
+    local frameCount = 0
+    local lastTime = tick()
+    local lastPingUpdate = 0
+    
+    while screenGui and screenGui.Parent do
+        local currentTime = tick()
+        frameCount = frameCount + 1
+        
+        if currentTime - lastTime >= 0.1 then
+            local fps = math.floor(frameCount / (currentTime - lastTime))
+            fps = math.clamp(fps, 0, 999)
+            
+            table.insert(fpsValues, fps)
+            if #fpsValues > 5 then table.remove(fpsValues, 1) end
+            local fpsAvg = 0
+            for _, v in ipairs(fpsValues) do fpsAvg = fpsAvg + v end
+            fpsAvg = math.floor(fpsAvg / #fpsValues)
+            
+            fpsValue.Text = tostring(fpsAvg)
+            frameCount = 0
+            lastTime = currentTime
+        end
+        
+        if currentTime - lastPingUpdate >= 0.5 then
+            pcall(function()
+                local ping = 0
+                pcall(function()
+                    local stats = Stats.Network.ServerStatsItem["Data Ping"]
+                    if stats then
+                        local val = stats:GetValue()
+                        ping = type(val) == "number" and val or tonumber(val:match("(%d+%.?%d*)")) or 0
+                    end
+                end)
+                
+                if ping == 0 then
+                    local start = tick()
+                    for i = 1, 5 do RunService.Heartbeat:Wait() end
+                    ping = math.floor((tick() - start) * 1000 / 5)
+                end
+                
+                table.insert(pingValues, ping)
+                if #pingValues > 5 then table.remove(pingValues, 1) end
+                local pingAvg = 0
+                for _, v in ipairs(pingValues) do pingAvg = pingAvg + v end
+                pingAvg = math.floor(pingAvg / #pingValues)
+                
+                pingValue.Text = pingAvg .. "ms"
+                
+                -- Warna sama untuk label, icon, dan value
+                local color
+                if pingAvg <= 99 then
+                    color = Color3.fromRGB(0, 255, 100)
+                elseif pingAvg <= 199 then
+                    color = Color3.fromRGB(255, 200, 0)
+                else
+                    color = Color3.fromRGB(255, 50, 50)
+                end
+                
+                pingValue.TextColor3 = color
+                pingLabel.TextColor3 = color
+                pingIcon.TextColor3 = color
+            end)
+            lastPingUpdate = currentTime
+        end
+        
+        task.wait()
+    end
+end)
+
+-- ═══════════════════════════════════════════════════════════
+-- LOADING BAR (COMPACT)
+-- ═══════════════════════════════════════════════════════════
+local barContainer = Instance.new("Frame")
+barContainer.Name = "BarContainer"
+barContainer.Size = UDim2.new(0.96, 0, 0, 18) -- Lebih pendek
+barContainer.Position = UDim2.new(0.02, 0, 0, 128)
+barContainer.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+barContainer.BorderSizePixel = 0
+barContainer.Parent = mainFrame
+
+local barCorner = Instance.new("UICorner")
+barCorner.CornerRadius = UDim.new(0, 5)
+barCorner.Parent = barContainer
+
+local barFill = Instance.new("Frame")
+barFill.Name = "BarFill"
+barFill.Size = UDim2.new(0, 0, 1, 0)
+barFill.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
+barFill.BorderSizePixel = 0
+barFill.Parent = barContainer
+
+local barFillCorner = Instance.new("UICorner")
+barFillCorner.CornerRadius = UDim.new(0, 5)
+barFillCorner.Parent = barFill
+
+local percentText = Instance.new("TextLabel")
+percentText.Name = "Percent"
+percentText.Size = UDim2.new(1, 0, 1, 0)
+percentText.BackgroundTransparency = 1
+percentText.Text = "0 / 100%"
+percentText.Font = Enum.Font.GothamBold
+percentText.TextSize = 11
+percentText.TextColor3 = Color3.fromRGB(255, 255, 255)
+percentText.ZIndex = 2
+percentText.Parent = barContainer
+
+-- ═══════════════════════════════════════════════════════════
+-- LOG AREA (COMPACT)
+-- ═══════════════════════════════════════════════════════════
+local logScroll = Instance.new("ScrollingFrame")
+logScroll.Name = "LogScroll"
+logScroll.Size = UDim2.new(0.96, 0, 1, -215)
+logScroll.Position = UDim2.new(0.02, 0, 0, 152)
+logScroll.BackgroundColor3 = Color3.fromRGB(8, 8, 11)
+logScroll.BackgroundTransparency = 0.4
+logScroll.BorderSizePixel = 0
+logScroll.ScrollBarThickness = 3
+logScroll.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255)
+logScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+logScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+logScroll.Parent = mainFrame
+
+local logCorner = Instance.new("UICorner")
+logCorner.CornerRadius = UDim.new(0, 6)
+logCorner.Parent = logScroll
+
+local logLayout = Instance.new("UIListLayout")
+logLayout.Padding = UDim.new(0, 2)
+logLayout.SortOrder = Enum.SortOrder.LayoutOrder
+logLayout.Parent = logScroll
+
+local logPadding = Instance.new("UIPadding")
+logPadding.PaddingTop = UDim.new(0, 6)
+logPadding.PaddingBottom = UDim.new(0, 6)
+logPadding.PaddingLeft = UDim.new(0, 8)
+logPadding.PaddingRight = UDim.new(0, 8)
+logPadding.Parent = logScroll
+
+-- ═══════════════════════════════════════════════════════════
+-- BUTTONS (TOUCH FRIENDLY - TIDAK TEMPEL)
+-- ═══════════════════════════════════════════════════════════
+local buttonContainer = Instance.new("Frame")
+buttonContainer.Name = "ButtonContainer"
+buttonContainer.Size = UDim2.new(0.96, 0, 0, 45)
+buttonContainer.Position = UDim2.new(0.02, 0, 1, -55)
+buttonContainer.BackgroundTransparency = 1
+buttonContainer.Parent = mainFrame
+
+-- Button Lanjutkan (HIJAU)
+local btnLanjutkan = Instance.new("TextButton")
+btnLanjutkan.Name = "BtnLanjutkan"
+btnLanjutkan.Size = UDim2.new(0.46, 0, 1, 0)
+btnLanjutkan.Position = UDim2.new(0.280, 0, 0, 0)
+btnLanjutkan.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+btnLanjutkan.AutoButtonColor = false
+btnLanjutkan.BorderSizePixel = 0
+btnLanjutkan.Text = "▶ LANJUTKAN"
+btnLanjutkan.Font = Enum.Font.GothamBold
+btnLanjutkan.TextSize = 13
+btnLanjutkan.TextColor3 = Color3.fromRGB(120, 120, 130)
+btnLanjutkan.Parent = buttonContainer
+
+local btnLanjCorner = Instance.new("UICorner")
+btnLanjCorner.CornerRadius = UDim.new(0, 6)
+btnLanjCorner.Parent = btnLanjutkan
+
+-- ═══════════════════════════════════════════════════════════
+-- WATERMARK
+-- ═══════════════════════════════════════════════════════════
+local watermark = Instance.new("TextLabel")
+watermark.Name = "Watermark"
+watermark.Size = UDim2.new(0, 200, 0, 18)
+watermark.Position = UDim2.new(1, -210, 1, -25)
+watermark.BackgroundTransparency = 1
+watermark.Text = "⚡ Powered By Zeutronxsite ⚡"
+watermark.Font = Enum.Font.GothamBold
+watermark.TextSize = 9
+watermark.TextColor3 = Color3.fromRGB(120, 120, 130)
+watermark.TextXAlignment = Enum.TextXAlignment.Right
+watermark.Parent = mainFrame
+
+-- ═══════════════════════════════════════════════════════════
+-- FUNCTIONS
+-- ═══════════════════════════════════════════════════════════
+local logCount = 0
+local checkingFinished = false
+local hasError = false
+
+local function addLog(text, color)
+    logCount = logCount + 1
+    local logLabel = Instance.new("TextLabel")
+    logLabel.Size = UDim2.new(1, -8, 0, 15)
+    logLabel.BackgroundTransparency = 1
+    logLabel.Text = text
+    logLabel.Font = Enum.Font.Code
+    logLabel.TextSize = 11
+    logLabel.TextColor3 = color or Color3.fromRGB(200, 200, 200)
+    logLabel.TextXAlignment = Enum.TextXAlignment.Left
+    logLabel.LayoutOrder = logCount
+    logLabel.Parent = logScroll
+    
+    logScroll.CanvasPosition = Vector2.new(0, logScroll.AbsoluteCanvasSize.Y)
+end
+
+local function addDivider()
+    logCount = logCount + 1
+    local divider = Instance.new("Frame")
+    divider.Size = UDim2.new(1, 0, 0, 1)
+    divider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    divider.BackgroundTransparency = 0.8
+    divider.BorderSizePixel = 0
+    divider.LayoutOrder = logCount
+    divider.Parent = logScroll
+end
+
+local function updateBar(percent)
+    percent = math.clamp(percent, 0, 100)
+    barFill.Size = UDim2.new(percent / 100, 0, 1, 0)
+    percentText.Text = math.floor(percent) .. " / 100%"
+end
+
+local function enableLanjutkanButton()
+    checkingFinished = true
+    btnLanjutkan.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+    btnLanjutkan.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btnLanjutkan.AutoButtonColor = true
+end
+
+btnLanjutkan.MouseButton1Click:Connect(function()
+    if checkingFinished then
+        screenGui:Destroy()
+    end
+end)
+
+-- ═══════════════════════════════════════════════════════════
+-- EXECUTION LOGIC (COMPACT LOGS)
+-- ═══════════════════════════════════════════════════════════
+task.spawn(function()
+    addLog("╔═══════════════════════════════════╗", Color3.fromRGB(100, 100, 110))
+    addLog("║ ZETHUB SYSTEM CHECKING v2.0    ║", Color3.fromRGB(0, 255, 100))
+    addLog("╚═══════════════════════════════════╝", Color3.fromRGB(100, 100, 110))
+    updateBar(2)
+    task.wait(0.3)
+    
+    addDivider()
+    addLog("[System] Initializing...", Color3.fromRGB(255, 255, 255))
+    updateBar(5)
+    task.wait(0.3)
+    addLog("[System] Device: " .. (isMobile and "📱 Mobile" or "💻 PC"), Color3.fromRGB(0, 200, 255))
+    updateBar(8)
+    task.wait(0.3)
+    addLog("[System] User: " .. player.Name, Color3.fromRGB(0, 200, 255))
+    updateBar(11)
+    task.wait(0.3)
+    
+    addDivider()
+    addLog("[+] Checking Environment...", Color3.fromRGB(255, 255, 255))
+    updateBar(15)
+    task.wait(0.3)
+    addLog("  ├─ Verifying executor...", Color3.fromRGB(150, 150, 160))
+    task.wait(0.2)
+    addLog("  └─ [✓] Environment OK", Color3.fromRGB(0, 255, 100))
+    updateBar(20)
+    task.wait(0.3)
+    
+    -- Mobile Keyboard
+    if isMobile then
+        addLog("[+] Attaching: Mobile Keyboard", Color3.fromRGB(255, 255, 255))
+        updateBar(28)
+        task.wait(0.3)
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/BloxinStud10/AStashOfRandomScripts/refs/heads/main/DeltaKeyboard.txt"))()
+        end)
+        addLog("  └─ [✓] Keyboard Attached", Color3.fromRGB(0, 255, 100))
+        updateBar(32)
+        task.wait(0.3)
+    end
+    
+    addDivider()
+    addLog("[+] Attaching: Anti-Cheat V1", Color3.fromRGB(255, 255, 255))
+    updateBar(40)
+    task.wait(0.3)
+    pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/c00lhaxOFFICAL/GrayScriptsAntiCheatRemoverV2LITE/refs/heads/main/GrayGrayGray"))()
+    end)
+    addLog("  └─ [✓] Anti-Cheat V1 Loaded", Color3.fromRGB(0, 255, 100))
+    updateBar(48)
+    task.wait(0.3)
+    
+    addLog("[+] Attaching: Anti-Cheat V2", Color3.fromRGB(255, 255, 255))
+    updateBar(56)
+    task.wait(0.3)
+    pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/c00lhaxOFFICAL/GrayScriptsAntiCheatRemoverV2PLUS/refs/heads/main/V2PLUS"))()
+    end)
+    addLog("  └─ [✓] Anti-Cheat V2 Loaded", Color3.fromRGB(0, 255, 100))
+    updateBar(64)
+    task.wait(0.3)
+    
+    addDivider()
+    local iyUrl = isMobile 
+        and "https://rawscripts.net/raw/Universal-Script-Infinite-Yield-Bypass-Anticheat-open-source-194150"
+        or "https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"
+    addLog("[+] Attaching: Infinite Yield", Color3.fromRGB(255, 255, 255))
+    updateBar(72)
+    task.wait(0.3)
+    pcall(function()
+        loadstring(game:HttpGet(iyUrl))()
+    end)
+    addLog("  └─ [✓] Infinite Yield Ready", Color3.fromRGB(0, 255, 100))
+    updateBar(80)
+    task.wait(0.3)
+    
+    addDivider()
+    addLog("[+] Attaching: ZETHUB Main", Color3.fromRGB(255, 255, 255))
+    updateBar(88)
+    task.wait(0.3)
+    pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Zyptrue/ZETHUB/refs/heads/main/Main%20Script"))()
+    end)
+    addLog("  └─ [✓] ZETHUB Loaded", Color3.fromRGB(0, 255, 100))
+    updateBar(96)
+    task.wait(0.3)
+    
+    addDivider()
+    addLog("[+] Finalizing...", Color3.fromRGB(255, 255, 255))
+    updateBar(100)
+    task.wait(0.3)
+    addLog("  └─ [✓] All systems operational", Color3.fromRGB(0, 255, 100))
+    
+    addDivider()
+    addLog("╔═══════════════════════════════════╗", Color3.fromRGB(100, 100, 110))
+    if hasError then
+        addLog("║ [!] SOME SCRIPTS FAILED         ║", Color3.fromRGB(255, 200, 0))
+    else
+        addLog("║ [✓] ALL SCRIPTS LOADED!         ║", Color3.fromRGB(0, 255, 100))
+    end
+    addLog("║ Thank you for using ZETHUB!   ║", Color3.fromRGB(200, 200, 210))
+    addLog("╚═══════════════════════════════════╝", Color3.fromRGB(100, 100, 110))
+    
+    enableLanjutkanButton()
+    checkingFinished = true
+end)
