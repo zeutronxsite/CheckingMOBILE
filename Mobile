@@ -1,6 +1,6 @@
 -- ╔════════════════════════════════════════════════════════════╗
--- ║        ZETHUB | CHECKING SYSTEM - MOBILE OPTIMIZED        ║
--- ║              Compact UI for Mobile Devices                 ║
+-- ║        ZETHUB | CHECKING SYSTEM - MOBILE OPTIMIZED                    ║
+-- ║              Compact UI for Mobile Devices                            ║
 -- ╚════════════════════════════════════════════════════════════╝
 
 local Players = game:GetService("Players")
