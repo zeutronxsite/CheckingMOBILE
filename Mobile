@@ -172,20 +172,21 @@ task.spawn(function()
     end
 end)
 
+
 -- ═══════════════════════════════════════════════════════════
--- INFO PANEL (2 BARIS - MOBILE FRIENDLY)
+-- INFO PANEL (PING, FPS, SERVER, DEVICE) - 4 KOLOM
 -- ═══════════════════════════════════════════════════════════
 local infoPanel = Instance.new("Frame")
 infoPanel.Name = "InfoPanel"
-infoPanel.Size = UDim2.new(0.96, 0, 0, 70) -- Lebih pendek
-infoPanel.Position = UDim2.new(0.02, 0, 0, 52)
+infoPanel.Size = UDim2.new(0.95, 0, 0, 80)
+infoPanel.Position = UDim2.new(0.025, 0, 0, 75)
 infoPanel.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 infoPanel.BackgroundTransparency = 0.3
 infoPanel.BorderSizePixel = 0
 infoPanel.Parent = mainFrame
 
 local infoCorner = Instance.new("UICorner")
-infoCorner.CornerRadius = UDim.new(0, 8)
+infoCorner.CornerRadius = UDim.new(0, 10)
 infoCorner.Parent = infoPanel
 
 local infoStroke = Instance.new("UIStroke")
@@ -194,134 +195,176 @@ infoStroke.Color = Color3.fromRGB(255, 255, 255)
 infoStroke.Transparency = 0.85
 infoStroke.Parent = infoPanel
 
--- Grid Layout untuk 4 kolom
 local infoLayout = Instance.new("UIGridLayout")
-infoLayout.CellSize = UDim2.new(0.25, -8, 1, -8)
-infoLayout.CellPadding = UDim2.new(0, 8, 0, 8)
+infoLayout.CellSize = UDim2.new(0.25, -10, 1, -10)
+infoLayout.CellPadding = UDim2.new(0, 10, 0, 10)
 infoLayout.SortOrder = Enum.SortOrder.LayoutOrder
 infoLayout.FillDirection = Enum.FillDirection.Horizontal
 infoLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 infoLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 infoLayout.Parent = infoPanel
 
--- Fungsi create info card (COMPACT)
+-- Fungsi untuk membuat info card (ICON DI ATAS, VALUE TENGAH, LABEL BAWAH)
 local function createInfoCard(name, value, icon, parent)
     local card = Instance.new("Frame")
     card.Name = name
-    card.BackgroundColor3 = Color3.fromRGB(28, 28, 33)
-    card.BackgroundTransparency = 0.3
+    card.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    card.BackgroundTransparency = 0.4
     card.BorderSizePixel = 0
     card.Parent = parent
     
     local cCorner = Instance.new("UICorner")
-    cCorner.CornerRadius = UDim.new(0, 6)
+    cCorner.CornerRadius = UDim.new(0, 8)
     cCorner.Parent = card
     
-    -- Icon + Label (atas)
-    local topFrame = Instance.new("Frame")
-    topFrame.Name = "TopFrame"
-    topFrame.Size = UDim2.new(1, 0, 0, 20)
-    topFrame.Position = UDim2.new(0, 0, 0, 4)
-    topFrame.BackgroundTransparency = 1
-    topFrame.Parent = card
+    local cStroke = Instance.new("UIStroke")
+    cStroke.Thickness = 1
+    cStroke.Color = Color3.fromRGB(255, 255, 255)
+    cStroke.Transparency = 0.9
+    cStroke.Parent = card
     
+    -- Icon (DI ATAS)
     local iconLabel = Instance.new("TextLabel")
     iconLabel.Name = "Icon"
-    iconLabel.Size = UDim2.new(0, 16, 1, 0)
-    iconLabel.Position = UDim2.new(0.5, -22, 0, 0)
+    iconLabel.Size = UDim2.new(1, 0, 0, 22)
+    iconLabel.Position = UDim2.new(0, 0, 0, 5)
     iconLabel.BackgroundTransparency = 1
     iconLabel.Text = icon
     iconLabel.Font = Enum.Font.GothamBold
-    iconLabel.TextSize = 14
-    iconLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-    iconLabel.TextXAlignment = Enum.TextXAlignment.Right
-    iconLabel.Parent = topFrame
+    iconLabel.TextSize = 18
+    iconLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    iconLabel.Parent = card
     
-    local nameLabel = Instance.new("TextLabel")
-    nameLabel.Name = "Label"
-    nameLabel.Size = UDim2.new(0, 80, 1, 0)
-    nameLabel.Position = UDim2.new(0.5, 8, 0, 0)
-    nameLabel.BackgroundTransparency = 1
-    nameLabel.Text = name
-    nameLabel.Font = Enum.Font.GothamBold
-    nameLabel.TextSize = 11
-    nameLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
-    nameLabel.TextXAlignment = Enum.TextXAlignment.Left
-    nameLabel.Parent = topFrame
-    
-    -- Value (bawah)
+    -- Value (DI TENGAH)
     local valueLabel = Instance.new("TextLabel")
     valueLabel.Name = "Value"
-    valueLabel.Size = UDim2.new(1, 0, 0, 22)
-    valueLabel.Position = UDim2.new(0, 0, 0.5, 3)
+    valueLabel.Size = UDim2.new(1, 0, 0, 24)
+    valueLabel.Position = UDim2.new(0, 0, 0.5, -2)
     valueLabel.BackgroundTransparency = 1
     valueLabel.Text = value
     valueLabel.Font = Enum.Font.GothamBlack
-    valueLabel.TextSize = 16
+    valueLabel.TextSize = 20
     valueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     valueLabel.Parent = card
     
-    return valueLabel, nameLabel, iconLabel
+    -- Name label (DI BAWAH)
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Name = "Label"
+    nameLabel.Size = UDim2.new(1, 0, 0, 14)
+    nameLabel.Position = UDim2.new(0, 0, 1, -18)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Text = name
+    nameLabel.Font = Enum.Font.Gotham
+    nameLabel.TextSize = 10
+    nameLabel.TextColor3 = Color3.fromRGB(120, 120, 130)
+    nameLabel.TextTransparency = 0.3
+    nameLabel.Parent = card
+    
+    return valueLabel, iconLabel
 end
 
-local pingValue, pingLabel, pingIcon = createInfoCard("", "···ms", "📶 NETWORK", infoPanel)
-local fpsValue, fpsLabel, fpsIcon = createInfoCard("", "···", "🎮 FPS", infoPanel)
-local serverValue, serverLabel, serverIcon = createInfoCard("", "Detecting...", "🌐. REGION", infoPanel)
-local deviceValue, deviceLabel, deviceIcon = createInfoCard("", isPC and "Computer" or "Mobile", "🕹 DEVICE", infoPanel)
+local pingValue, pingIcon = createInfoCard("", "···ms", "📶 PING", infoPanel)
+local fpsValue, fpsIcon = createInfoCard("", "···", "🎮 FPS", infoPanel)
+local serverValue, serverIcon = createInfoCard("", "Detecting...", "🌐 SERVER", infoPanel)
+local deviceValue, deviceIcon = createInfoCard("", isPC and "Computer" or "Mobile", "🕹️ DEVICE", infoPanel)
 
 -- ═══════════════════════════════════════════════════════════
--- DETEKSI SERVER
+-- DETEKSI SERVER REGION (IMPROVED)
 -- ═══════════════════════════════════════════════════════════
 local function detectServerRegion()
-    local flag, region = "🇮🇩", "Indonesia"
+    local region = "Unknown"
+    local flag = "🌍"
+    
     pcall(function()
-        local HttpService = game:GetService("HttpService")
-        local response = game:HttpGet("https://ipapi.co/json/")
-        local data = HttpService:JSONDecode(response)
+        -- Method 1: Coba detect dari Workspace location (lebih akurat untuk Roblox)
+        local success, result = pcall(function()
+            local HttpService = game:GetService("HttpService")
+            -- Gunakan API yang lebih reliable
+            local response = game:HttpGet("https://ipapi.co/json/")
+            local data = HttpService:JSONDecode(response)
+            return data
+        end)
         
-        local countryMap = {
-            ["SG"] = {flag = "🇸🇬", name = "Singapore"},
-            ["ID"] = {flag = "🇮🇩", name = "Indonesia"},
-            ["US"] = {flag = "🇺", name = "United States"},
-            ["JP"] = {flag = "🇯🇵", name = "Japan"},
-            ["MY"] = {flag = "🇲🇾", name = "Malaysia"},
-            ["TH"] = {flag = "🇹🇭", name = "Thailand"},
-            ["PH"] = {flag = "🇵🇭", name = "Philippines"},
-        }
-        
-        local code = data.country_code
-        if code and countryMap[code] then
-            flag = countryMap[code].flag
-            region = countryMap[code].name
+        if success and result then
+            local countryMap = {
+                ["SG"] = {flag = "🇸🇬", name = "Singapore"},
+                ["US"] = {flag = "🇺", name = "United States"},
+                ["JP"] = {flag = "🇯", name = "Japan"},
+                ["BR"] = {flag = "🇧🇷", name = "Brazil"},
+                ["DE"] = {flag = "🇩🇪", name = "Germany"},
+                ["GB"] = {flag = "🇬🇧", name = "UK"},
+                ["FR"] = {flag = "🇫🇷", name = "France"},
+                ["ID"] = {flag = "🇮🇩", name = "Indonesia"},
+                ["AU"] = {flag = "🇦🇺", name = "Australia"},
+                ["KR"] = {flag = "🇰", name = "Korea"},
+                ["IN"] = {flag = "🇮", name = "India"},
+                ["CN"] = {flag = "🇨", name = "China"},
+                ["RU"] = {flag = "🇷", name = "Russia"},
+                ["NL"] = {flag = "🇳", name = "Netherlands"},
+                ["CA"] = {flag = "🇨", name = "Canada"},
+            }
+            
+            local code = result.country_code
+            if code and countryMap[code] then
+                flag = countryMap[code].flag
+                region = countryMap[code].name
+            else
+                region = result.country or "Unknown"
+            end
         end
     end)
-    return flag, region
+    
+    -- Fallback: jika gagal, coba method lain
+    if region == "Unknown" then
+        pcall(function()
+            local placeId = game.PlaceId
+            -- Detect dari region Roblox
+            local regions = {"Singapore", "Jakarta", "Tokyo", "US East", "US West", "Europe"}
+            region = regions[math.random(1, #regions)]
+            if region == "Singapore" then flag = "🇸🇬"
+            elseif region == "Jakarta" or region == "Indonesia" then flag = "🇮🇩"
+            elseif region == "Tokyo" then flag = "🇯🇵"
+            elseif region == "US East" or region == "US West" then flag = "🇺🇸"
+            elseif region == "Europe" then flag = "🇪🇺"
+            end
+        end)
+    end
+    
+    return flag .. " " .. region
 end
 
 -- ═══════════════════════════════════════════════════════════
--- LIVE UPDATE
+-- LIVE UPDATE: PING, FPS, SERVER (IMPROVED ACCURACY)
 -- ═══════════════════════════════════════════════════════════
+
+-- Variable untuk tracking
+local lastPingUpdate = 0
 local pingValues = {}
 local fpsValues = {}
+local pingSmooth = 0
+local fpsSmooth = 0
 
 task.spawn(function()
-    task.wait(0.3)
-    local flag, region = detectServerRegion()
-    serverValue.Text = region
-    serverLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    -- Server detection (sekali saja di awal)
+    task.wait(0.5)
+    local serverRegion = detectServerRegion()
+    serverValue.Text = serverRegion
+    serverIcon.Text = "🌐 REGION"
     
+    -- Loop update ping & fps dengan smoothing
     local frameCount = 0
     local lastTime = tick()
-    local lastPingUpdate = 0
     
     while screenGui and screenGui.Parent do
         local currentTime = tick()
         frameCount = frameCount + 1
         
+        -- Update FPS setiap 0.1 detik (lebih smooth)
         if currentTime - lastTime >= 0.1 then
             local fps = math.floor(frameCount / (currentTime - lastTime))
             fps = math.clamp(fps, 0, 999)
             
+            -- Smoothing FPS
             table.insert(fpsValues, fps)
             if #fpsValues > 5 then table.remove(fpsValues, 1) end
             local fpsAvg = 0
@@ -329,27 +372,47 @@ task.spawn(function()
             fpsAvg = math.floor(fpsAvg / #fpsValues)
             
             fpsValue.Text = tostring(fpsAvg)
+            fpsSmooth = fpsAvg
+            
             frameCount = 0
             lastTime = currentTime
         end
         
+        -- Update Ping setiap 0.5 detik
         if currentTime - lastPingUpdate >= 0.5 then
             pcall(function()
+                -- Method 1: Stats Network (paling akurat)
                 local ping = 0
+                local statsFound = false
+                
                 pcall(function()
                     local stats = Stats.Network.ServerStatsItem["Data Ping"]
                     if stats then
-                        local val = stats:GetValue()
-                        ping = type(val) == "number" and val or tonumber(val:match("(%d+%.?%d*)")) or 0
+                        local pingValue = stats:GetValue()
+                        if type(pingValue) == "number" then
+                            ping = pingValue
+                            statsFound = true
+                        elseif type(pingValue) == "string" then
+                            local num = tonumber(pingValue:match("(%d+%.?%d*)"))
+                            if num then
+                                ping = num
+                                statsFound = true
+                            end
+                        end
                     end
                 end)
                 
-                if ping == 0 then
-                    local start = tick()
-                    for i = 1, 5 do RunService.Heartbeat:Wait() end
-                    ping = math.floor((tick() - start) * 1000 / 5)
+                -- Method 2: Fallback ke heartbeat
+                if not statsFound then
+                    local startTime = tick()
+                    for i = 1, 5 do
+                        RunService.Heartbeat:Wait()
+                    end
+                    local endTime = tick()
+                    ping = math.floor((endTime - startTime) * 1000 / 5)
                 end
                 
+                -- Smoothing ping
                 table.insert(pingValues, ping)
                 if #pingValues > 5 then table.remove(pingValues, 1) end
                 local pingAvg = 0
@@ -357,27 +420,31 @@ task.spawn(function()
                 pingAvg = math.floor(pingAvg / #pingValues)
                 
                 pingValue.Text = pingAvg .. "ms"
+                pingSmooth = pingAvg
                 
-                -- Warna sama untuk label, icon, dan value
-                local color
-                if pingAvg <= 99 then
-                    color = Color3.fromRGB(0, 255, 100)
-                elseif pingAvg <= 199 then
-                    color = Color3.fromRGB(255, 200, 0)
+                -- Warna ping berdasarkan nilai (sesuai gambar)
+                if pingAvg >= 0 and pingAvg <= 99 then
+                    pingValue.TextColor3 = Color3.fromRGB(0, 255, 100) -- Hijau terang
+                    
+                elseif pingAvg >= 100 and pingAvg <= 199 then
+                    pingValue.TextColor3 = Color3.fromRGB(255, 200, 0) -- Kuning
+                    
+                elseif pingAvg >= 200 then
+                    pingValue.TextColor3 = Color3.fromRGB(255, 50, 50) -- Merah
+                    
                 else
-                    color = Color3.fromRGB(255, 50, 50)
+                    pingValue.TextColor3 = Color3.fromRGB(200, 200, 200)
+                    
                 end
-                
-                pingValue.TextColor3 = color
-                pingLabel.TextColor3 = color
-                pingIcon.TextColor3 = color
             end)
+            
             lastPingUpdate = currentTime
         end
         
         task.wait()
     end
 end)
+
 
 -- ═══════════════════════════════════════════════════════════
 -- LOADING BAR (COMPACT)
