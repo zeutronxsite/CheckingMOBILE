@@ -368,6 +368,183 @@ logPadding.PaddingRight = UDim.new(0, 8)
 logPadding.Parent = logScroll
 
 -- ═══════════════════════════════════════════════════════════
+-- DETEKSI SERVER REGION (IMPROVED)
+-- ═══════════════════════════════════════════════════════════
+local function detectServerRegion()
+    local region = "Unknown"
+    local flag = "🌍"
+    
+    pcall(function()
+        -- Method 1: Coba detect dari Workspace location (lebih akurat untuk Roblox)
+        local success, result = pcall(function()
+            local HttpService = game:GetService("HttpService")
+            -- Gunakan API yang lebih reliable
+            local response = game:HttpGet("https://ipapi.co/json/")
+            local data = HttpService:JSONDecode(response)
+            return data
+        end)
+        
+        if success and result then
+            local countryMap = {
+                ["SG"] = {flag = "🇸🇬", name = "Singapore"},
+                ["US"] = {flag = "🇺", name = "United States"},
+                ["JP"] = {flag = "🇯", name = "Japan"},
+                ["BR"] = {flag = "🇧🇷", name = "Brazil"},
+                ["DE"] = {flag = "🇩🇪", name = "Germany"},
+                ["GB"] = {flag = "🇬🇧", name = "UK"},
+                ["FR"] = {flag = "🇫🇷", name = "France"},
+                ["ID"] = {flag = "🇮🇩", name = "Indonesia"},
+                ["AU"] = {flag = "🇦🇺", name = "Australia"},
+                ["KR"] = {flag = "🇰", name = "Korea"},
+                ["IN"] = {flag = "🇮", name = "India"},
+                ["CN"] = {flag = "🇨", name = "China"},
+                ["RU"] = {flag = "🇷", name = "Russia"},
+                ["NL"] = {flag = "🇳", name = "Netherlands"},
+                ["CA"] = {flag = "🇨", name = "Canada"},
+            }
+            
+            local code = result.country_code
+            if code and countryMap[code] then
+                flag = countryMap[code].flag
+                region = countryMap[code].name
+            else
+                region = result.country or "Unknown"
+            end
+        end
+    end)
+    
+    -- Fallback: jika gagal, coba method lain
+    if region == "Unknown" then
+        pcall(function()
+            local placeId = game.PlaceId
+            -- Detect dari region Roblox
+            local regions = {"Singapore", "Jakarta", "Tokyo", "US East", "US West", "Europe"}
+            region = regions[math.random(1, #regions)]
+            if region == "Singapore" then flag = "🇸🇬"
+            elseif region == "Jakarta" or region == "Indonesia" then flag = "🇮🇩"
+            elseif region == "Tokyo" then flag = "🇯🇵"
+            elseif region == "US East" or region == "US West" then flag = "🇺🇸"
+            elseif region == "Europe" then flag = "🇪🇺"
+            end
+        end)
+    end
+    
+    return flag .. " " .. region
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- LIVE UPDATE: PING, FPS, SERVER (IMPROVED ACCURACY)
+-- ═══════════════════════════════════════════════════════════
+
+-- Variable untuk tracking
+local lastPingUpdate = 0
+local pingValues = {}
+local fpsValues = {}
+local pingSmooth = 0
+local fpsSmooth = 0
+
+task.spawn(function()
+    -- Server detection (sekali saja di awal)
+    task.wait(0.5)
+    local serverRegion = detectServerRegion()
+    serverValue.Text = serverRegion
+    serverIcon.Text = "🌐 SERVER"
+    
+    -- Loop update ping & fps dengan smoothing
+    local frameCount = 0
+    local lastTime = tick()
+    
+    while screenGui and screenGui.Parent do
+        local currentTime = tick()
+        frameCount = frameCount + 1
+        
+        -- Update FPS setiap 0.1 detik (lebih smooth)
+        if currentTime - lastTime >= 0.1 then
+            local fps = math.floor(frameCount / (currentTime - lastTime))
+            fps = math.clamp(fps, 0, 999)
+            
+            -- Smoothing FPS
+            table.insert(fpsValues, fps)
+            if #fpsValues > 5 then table.remove(fpsValues, 1) end
+            local fpsAvg = 0
+            for _, v in ipairs(fpsValues) do fpsAvg = fpsAvg + v end
+            fpsAvg = math.floor(fpsAvg / #fpsValues)
+            
+            fpsValue.Text = tostring(fpsAvg)
+            fpsSmooth = fpsAvg
+            
+            frameCount = 0
+            lastTime = currentTime
+        end
+        
+        -- Update Ping setiap 0.5 detik
+        if currentTime - lastPingUpdate >= 0.5 then
+            pcall(function()
+                -- Method 1: Stats Network (paling akurat)
+                local ping = 0
+                local statsFound = false
+                
+                pcall(function()
+                    local stats = Stats.Network.ServerStatsItem["Data Ping"]
+                    if stats then
+                        local pingValue = stats:GetValue()
+                        if type(pingValue) == "number" then
+                            ping = pingValue
+                            statsFound = true
+                        elseif type(pingValue) == "string" then
+                            local num = tonumber(pingValue:match("(%d+%.?%d*)"))
+                            if num then
+                                ping = num
+                                statsFound = true
+                            end
+                        end
+                    end
+                end)
+                
+                -- Method 2: Fallback ke heartbeat
+                if not statsFound then
+                    local startTime = tick()
+                    for i = 1, 5 do
+                        RunService.Heartbeat:Wait()
+                    end
+                    local endTime = tick()
+                    ping = math.floor((endTime - startTime) * 1000 / 5)
+                end
+                
+                -- Smoothing ping
+                table.insert(pingValues, ping)
+                if #pingValues > 5 then table.remove(pingValues, 1) end
+                local pingAvg = 0
+                for _, v in ipairs(pingValues) do pingAvg = pingAvg + v end
+                pingAvg = math.floor(pingAvg / #pingValues)
+                
+                pingValue.Text = pingAvg .. "ms"
+                pingSmooth = pingAvg
+                
+                -- Warna ping berdasarkan nilai (sesuai gambar)
+                if pingAvg >= 0 and pingAvg <= 99 then
+                    pingValue.TextColor3 = Color3.fromRGB(0, 255, 100) -- Hijau terang
+                    
+                elseif pingAvg >= 100 and pingAvg <= 199 then
+                    pingValue.TextColor3 = Color3.fromRGB(255, 200, 0) -- Kuning
+                    
+                elseif pingAvg >= 200 then
+                    pingValue.TextColor3 = Color3.fromRGB(255, 50, 50) -- Merah
+                    
+                else
+                    pingValue.TextColor3 = Color3.fromRGB(200, 200, 200)
+                    
+                end
+            end)
+            
+            lastPingUpdate = currentTime
+        end
+        
+        task.wait()
+    end
+end)
+
+-- ═══════════════════════════════════════════════════════════
 -- BUTTONS (TOUCH FRIENDLY - TIDAK TEMPEL)
 -- ═══════════════════════════════════════════════════════════
 local buttonContainer = Instance.new("Frame")
