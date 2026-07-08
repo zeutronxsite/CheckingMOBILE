@@ -324,10 +324,10 @@ local function createInfoCard(name, value, icon, parent)
     return valueLabel, nameLabel, iconLabel
 end
 
-local pingValue, pingLabel, pingIcon = createInfoCard("NETWORK", "···ms", "📶", infoPanel)
-local fpsValue, fpsLabel, fpsIcon = createInfoCard("FPS", "···", "", infoPanel)
-local serverValue, serverLabel, serverIcon = createInfoCard("SERVER", "Detecting...", "🌐", infoPanel)
-local deviceValue, deviceLabel, deviceIcon = createInfoCard("DEVICE", isPC and "PC" or "Mobile", "📱", infoPanel)
+local pingValue, pingLabel, pingIcon = createInfoCard("", "···ms", "📶 NETWORK", infoPanel)
+local fpsValue, fpsLabel, fpsIcon = createInfoCard("", "···", "🎮 FPS", infoPanel)
+local serverValue, serverLabel, serverIcon = createInfoCard("", "Detecting...", "🌐 SERVER", infoPanel)
+local deviceValue, deviceLabel, deviceIcon = createInfoCard("", isPC and "Computer" or "Mobile", "🕹️ DEVICE", infoPanel)
 
 -- ═══════════════════════════════════════════════════════════
 -- LOG AREA (POSISI DITURUNKAN)
