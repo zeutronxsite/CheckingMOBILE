@@ -41,9 +41,12 @@ local Colors = {
 local function createInstance(className, properties)
     local instance = Instance.new(className)
     for prop, value in pairs(properties) do
-        -- Safety check: Pastikan properti valid sebelum diset (Mencegah error DisplayOrder tadi)
-        if instance:FindProperty(prop) then
+        -- Perbaikan: Gunakan pcall untuk mengecek apakah properti valid
+        local success = pcall(function()
             instance[prop] = value
+        end)
+        if not success then
+            warn("[ZETHUB] Invalid property ignored: " .. tostring(prop))
         end
     end
     return instance
