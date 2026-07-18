@@ -323,60 +323,82 @@ createInstance("UIStroke", {Color = Colors.PrimaryDim, Thickness = 1, Transparen
 -- // PERBAIKAN BAGIAN AVATAR / FOTO PROFIL
 -- Ganti seluruh blok kode yang membuat 'avatarFrame' dan isinya dengan ini:
 
+-- // PERBAIKAN FINAL AVATAR PROFILE
+-- Ganti bagian 'avatarFrame' dan logika gambar sebelumnya dengan ini:
+
 local avatarFrame = createInstance("Frame", {
     Name = "AvatarFrame",
-    Size = UDim2.new(0, 60, 0, 60), -- Ukuran sedikit diperbesar agar jelas
+    Size = UDim2.new(0, 60, 0, 60),
     Position = UDim2.new(0, 15, 0, 10),
-    BackgroundColor3 = Color3.fromRGB(20, 20, 20),
+    BackgroundColor3 = Color3.fromRGB(30, 30, 30), -- PENTING: Warna abu gelap saat loading (bukan hitam)
     BorderSizePixel = 0,
-    ClipsDescendants = true, -- Penting agar gambar bulat sempurna
+    ClipsDescendants = true,
     ZIndex = 12,
     Parent = profileSection
 })
 createInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = avatarFrame})
 
--- Fungsi untuk mengambil URL Avatar Terbaru
-local function getAvatarHeadshot(userId)
-    local url = string.format("https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=%d&size=150x150&format=Png&isCircular=false", userId)
+-- Fungsi Mengambil Avatar dengan Failsafe (Cadangan)
+local function getAvatarUrl(userId)
+    -- Cara 1: API Thumbnail (Paling Bagus)
+    local url1 = string.format("https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=%d&size=150x150&format=Png&isCircular=false", userId)
+    
+    -- Cara 2: Link Langsung (Cadangan jika API error)
+    local url2 = string.format("https://www.roblox.com/headshot-thumbnail/image?userId=%d&width=150&height=150&format=png", userId)
+
     local success, response = pcall(function()
-        return game:HttpGet(url)
+        return game:HttpGet(url1)
     end)
     
     if success then
-        local data = game:GetService("HttpService"):JSONDecode(response)
-        if data and data.data and #data.data > 0 then
+        local safe, data = pcall(function() 
+            return game:GetService("HttpService"):JSONDecode(response) 
+        end)
+        
+        if safe and data and data.data and #data.data > 0 then
             return data.data[1].imageUrl
         end
     end
-    return nil
+    
+    -- Jika Cara 1 gagal, kembalikan link Cara 2 (Langsung)
+    return url2
 end
 
--- Eksekusi pengambilan gambar
-local avatarUrl = getAvatarHeadshot(player.UserId)
+local finalAvatarUrl = getAvatarUrl(player.UserId)
 
-if avatarUrl then
-    -- Jika berhasil, buat ImageLabel
-    createInstance("ImageLabel", {
-        Size = UDim2.new(1, 0, 1, 0),
-        BackgroundTransparency = 1,
-        Image = avatarUrl,
-        ScaleType = Enum.ScaleType.Crop, -- Agar wajah pas di lingkaran
-        ZIndex = 13,
-        Parent = avatarFrame
-    })
-else
-    -- Fallback jika gagal (Tampilkan Inisial Nama)
-    createInstance("TextLabel", {
-        Size = UDim2.new(1, 0, 1, 0),
-        BackgroundTransparency = 1,
-        Text = string.sub(player.Name, 1, 2):upper(),
-        Font = Enum.Font.GothamBlack,
-        TextSize = 24,
-        TextColor3 = Colors.Primary,
-        ZIndex = 13,
-        Parent = avatarFrame
-    })
-end
+-- Membuat ImageLabel
+local avatarImage = createInstance("ImageLabel", {
+    Size = UDim2.new(1.2, 0, 1.2, 0), -- Sedikit lebih besar untuk efek zoom-in
+    Position = UDim2.new(-0.1, 0, -0.1, 0),
+    BackgroundTransparency = 1,
+    Image = finalAvatarUrl, -- Masukkan URL (baik dari API atau link langsung)
+    ScaleType = Enum.ScaleType.Crop,
+    ZIndex = 13,
+    Parent = avatarFrame
+})
+
+-- Fallback Text (Inisial) - Hanya muncul jika gambar benar-benar error total
+local fallbackText = createInstance("TextLabel", {
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundTransparency = 1,
+    Text = string.sub(player.Name, 1, 2):upper(),
+    Font = Enum.Font.GothamBlack,
+    TextSize = 24,
+    TextColor3 = Colors.Primary,
+    Visible = false, -- Sembunyikan dulu
+    ZIndex = 14,
+    Parent = avatarFrame
+})
+
+-- Deteksi jika gambar gagal dimuat setelah beberapa detik
+task.spawn(function()
+    task.wait(3) -- Tunggu 3 detik
+    if avatarImage.Image == "" or avatarImage.Image == finalAvatarUrl and avatarImage.Size == UDim2.new(0,0,0,0) then
+        -- Jika masih error, tampilkan inisial
+        avatarImage.Visible = false
+        fallbackText.Visible = true
+    end
+end)
 
 -- User Info
 local usernameLabel = createInstance("TextLabel", {
@@ -412,7 +434,7 @@ local rankLabel = createInstance("TextLabel", {
     Size = UDim2.new(1, -80, 0, 20),
     Position = UDim2.new(0, 75, 0, 52),
     BackgroundTransparency = 1,
-    Text = "STATUS: PREMIUM OPERATOR",
+    Text = "STATUS: OPERATIONAL",
     Font = Enum.Font.Code,
     TextSize = 11,
     TextColor3 = Colors.Primary,
