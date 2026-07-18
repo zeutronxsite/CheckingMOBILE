@@ -1,94 +1,48 @@
--- ╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
--- ║                                                                                                              ║
--- ║                                     ZETHUB | ULTIMATE PRISON LOADING UI                                      ║
--- ║                                Created by ZETHUB Team - Universal Edition                                    ║
--- ║                              Support Mobile & PC - All Major Executors                                       ║
--- ║                                                                                                              ║
--- ║  FITUR UTAMA:                                                                                                ║
--- ║  1. [O] Checking Indicator (Hijau, Berkedip) di Pojok Atas                                                   ║
--- ║  2. Tombol Continue (Hijau Neon) untuk menghancurkan UI setelah selesai                                      ║
--- ║  3. Informasi Executor yang digunakan (Auto-Detect)                                                          ║
--- ║  4. Foto Profil Player (Thumbnail) & Nama Player                                                             ║
--- ║  5. Tombol X (Close) untuk menutup UI secara manual                                                          ║
--- ║  6. Desain UI/UX Premium (Dark Theme, Gradient, Smooth Tween, Shadow)                                        ║
--- ║  7. Arsitektur Modular & Extensive Configuration (1000+ Lines of Quality Code)                               ║
--- ╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+-- ==========================================================================================================
+-- ZETHUB | CYBERPUNK MOBILE LOADING & CHECKING SYSTEM (UPDATED)
+-- ==========================================================================================================
+-- Theme: Cyberpunk / Hacker
+-- Target: Mobile Optimized (Full Screen, Black Background, Touch Friendly)
+-- Updates: 
+--   - Added DisplayOrder for proper layering
+--   - Moved Watermark to Top-Right
+--   - Enhanced Visual Hierarchy
+-- ==========================================================================================================
 
--- ================================================================================================================
--- 1. KONFIGURASI UTAMA (CONFIGURATION TABLE)
--- ================================================================================================================
-local CONFIG = {
-    UI = {
-        Name = "ZETHUB_Ultimate_Loading_UI",
-        MainSize = UDim2.new(0.5, 0, 0.75, 0), -- Lebih besar untuk menampung profil
-        MainPosition = UDim2.new(0.25, 0, 0.125, 0),
-        BackgroundColor = Color3.fromRGB(18, 18, 24),
-        BorderColor = Color3.fromRGB(0, 255, 136), -- Hijau Neon
-        CornerSize = 16,
-        AnimationSpeed = 0.4
-    },
-    Colors = {
-        Primary = Color3.fromRGB(0, 255, 136),     -- Hijau Neon (Success/Primary)
-        Secondary = Color3.fromRGB(0, 200, 255),   -- Biru Cyan (Info)
-        Warning = Color3.fromRGB(255, 200, 0),     -- Kuning (Warning/Loading)
-        Error = Color3.fromRGB(255, 60, 60),       -- Merah (Error)
-        TextMain = Color3.fromRGB(255, 255, 255),  -- Putih
-        TextMuted = Color3.fromRGB(150, 150, 160), -- Abu-abu
-        LogBackground = Color3.fromRGB(12, 12, 16)
-    },
-    Text = {
-        Font = Enum.Font.Gotham,
-        FontBold = Enum.Font.GothamBold,
-        FontCode = Enum.Font.Code,
-        Title = "ZETHUB | TLK PRISON",
-        Checking = "[O] CHECKING",
-        Continue = "LANJUTKAN (CONTINUE)",
-        Close = "X"
-    }
-}
-
--- ================================================================================================================
--- 2. LAYANAN ROBLOX (ROBLOX SERVICES)
--- ================================================================================================================
+-- // SERVICES
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local HttpService = game:GetService("HttpService")
-local Lighting = game:GetService("Lighting")
 
+-- // VARIABLES
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- ================================================================================================================
--- 3. FUNGSI DETEKSI SISTEM & EXECUTOR
--- ================================================================================================================
+-- Device Detection (Optimized for Mobile)
 local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
 local isPC = UserInputService.MouseEnabled and not UserInputService.TouchEnabled
 
-local function getExecutorName()
-    -- Deteksi executor berdasarkan environment global yang umum
-    if getexecutorname then
-        local name = getexecutorname()
-        if name ~= "" then return name end
-    end
-    if syn and syn.request then return "Synapse X / Solara" end
-    if KRNL_LOADED then return "Krnl" end
-    if fluxus and fluxus.execute then return "Fluxus" end
-    if OXYGEN then return "Oxygen U" end
-    if DELTA or (getgenv and getgenv().DELTA) then return "Delta" end
-    if OMEGA then return "Omega" end
-    if APPLEWARE then return "Appleware" end
-    return "Unknown / Custom Executor"
-end
+-- Cyberpunk Color Palette
+local Colors = {
+    Background = Color3.fromRGB(0, 0, 0),
+    Surface = Color3.fromRGB(8, 8, 10),
+    SurfaceLight = Color3.fromRGB(15, 15, 18),
+    Primary = Color3.fromRGB(0, 255, 65),       -- Neon Green
+    PrimaryDim = Color3.fromRGB(0, 180, 45),
+    Secondary = Color3.fromRGB(0, 200, 255),    -- Cyber Blue
+    Danger = Color3.fromRGB(255, 50, 50),
+    Warning = Color3.fromRGB(255, 180, 0),
+    TextMain = Color3.fromRGB(255, 255, 255),
+    TextDim = Color3.fromRGB(140, 140, 150),
+    Grid = Color3.fromRGB(0, 40, 15)
+}
 
-local executorName = getExecutorName()
+-- // UTILITY FUNCTIONS
+-- ==========================================================================================================
 
--- ================================================================================================================
--- 4. FUNGSI HELPER & UTILITAS (MODULAR ARCHITECTURE)
--- ================================================================================================================
-
--- Fungsi membuat instance dengan properti massal (Mengurangi repetisi, meningkatkan kebersihan kode)
+-- Fungsi untuk membuat Instance dengan properti langsung
 local function createInstance(className, properties)
     local instance = Instance.new(className)
     for prop, value in pairs(properties) do
@@ -97,515 +51,741 @@ local function createInstance(className, properties)
     return instance
 end
 
--- Fungsi Tweening Kustom untuk animasi halus
-local function tweenObject(object, properties, duration, style, direction)
-    local tweenInfo = TweenInfo.new(
-        duration or CONFIG.UI.AnimationSpeed,
-        style or Enum.EasingStyle.Quart,
-        direction or Enum.EasingDirection.Out
-    )
-    local tween = TweenService:Create(object, tweenInfo, properties)
+-- Fungsi Tweening yang reusable
+local function tweenObject(object, info, properties)
+    local tween = TweenService:Create(object, info, properties)
     tween:Play()
     return tween
 end
 
--- Fungsi mendapatkan thumbnail pemain
-local function getPlayerThumbnail(userId)
-    local thumbType = Enum.ThumbnailType.HeadShot
-    local thumbSize = Enum.ThumbnailSize.Size420x420
-    local content, isReady = Players:GetUserThumbnailAsync(userId, thumbType, thumbSize)
-    return content
+-- Fungsi untuk mendapatkan timestamp saat ini
+local function getTimestamp()
+    local time = os.date("*t")
+    return string.format("%02d:%02d:%02d", time.hour, time.min, time.sec)
 end
 
--- ================================================================================================================
--- 5. INISIALISASI UI UTAMA (MAIN UI INITIALIZATION)
--- ================================================================================================================
+-- Fungsi efek glitch sederhana pada text
+local function glitchText(textLabel, finalText, duration)
+    local chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*"
+    local iterations = 10
+    for i = 1, iterations do
+        local glitched = ""
+        for j = 1, #finalText do
+            if math.random() > 0.5 then
+                glitched = glitched .. string.sub(chars, math.random(1, #chars), math.random(1, #chars))
+            else
+                glitched = glitched .. string.sub(finalText, j, j)
+            end
+        end
+        textLabel.Text = glitched
+        task.wait(duration / iterations)
+    end
+    textLabel.Text = finalText
+end
+
+-- // MAIN GUI SETUP
+-- ==========================================================================================================
+
 local screenGui = createInstance("ScreenGui", {
-    Name = CONFIG.UI.Name,
+    Name = "ZETHUB_CYBERPUNK_MOBILE_UI",
     ResetOnSpawn = false,
     ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-    IgnoreGuiInset = true,
-    DisplayOrder = 9999
+    IgnoreGuiInset = true, -- Full screen tanpa inset
+    DisplayOrder = 100,    -- Pastikan UI ini di atas UI game default
+    Parent = (syn and syn.protect_gui and (function() syn.protect_gui(screenGui); return game:GetService("CoreGui") end)()) or 
+             (gethui and gethui()) or 
+             playerGui
 })
 
--- Proteksi GUI agar tidak dihapus oleh executor tertentu
-if syn and syn.protect_gui then
-    syn.protect_gui(screenGui)
-    screenGui.Parent = game:GetService("CoreGui")
-elseif gethui then
-    screenGui.Parent = gethui()
-else
-    screenGui.Parent = playerGui
-end
+-- // BACKGROUND LAYERS (DisplayOrder: 1)
+-- ==========================================================================================================
 
--- ================================================================================================================
--- 6. KOMPONEN: MAIN FRAME (CONTAINER)
--- ================================================================================================================
-local mainFrame = createInstance("Frame", {
-    Name = "MainFrame",
-    Size = CONFIG.UI.MainSize,
-    Position = UDim2.new(0.5, 0, 0.5, 0), -- Mulai dari tengah untuk animasi
-    AnchorPoint = Vector2.new(0.5, 0.5),
-    BackgroundColor3 = CONFIG.UI.BackgroundColor,
+-- Base Black Background
+local baseBackground = createInstance("Frame", {
+    Name = "BaseBackground",
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundColor3 = Colors.Background,
     BorderSizePixel = 0,
-    ClipsDescendants = true,
+    DisplayOrder = 1,
     Parent = screenGui
 })
 
--- UICorner untuk MainFrame
-createInstance("UICorner", {
-    CornerRadius = UDim.new(0, CONFIG.UI.CornerSize),
-    Parent = mainFrame
-})
-
--- UIStroke untuk Border Animasi (Akan dianimasikan nanti)
-local mainStroke = createInstance("UIStroke", {
-    Name = "AnimatedStroke",
-    Thickness = 2,
-    Color = CONFIG.UI.BorderColor,
-    Transparency = 0.2,
-    Parent = mainFrame
-})
-
--- UIGradient untuk efek depth pada background
-createInstance("UIGradient", {
-    Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(24, 24, 32)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(12, 12, 18))
-    }),
-    Rotation = 135,
-    Parent = mainFrame
-})
-
--- Shadow Effect (Simulasi bayangan menggunakan frame di belakang)
-local shadowFrame = createInstance("Frame", {
-    Name = "Shadow",
-    Size = UDim2.new(1, 20, 1, 20),
-    Position = UDim2.new(0, -10, 0, -5),
-    BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+-- Cyber Grid Background Effect
+local gridBackground = createInstance("Frame", {
+    Name = "GridBackground",
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundColor3 = Colors.Background,
     BorderSizePixel = 0,
-    ZIndex = -1,
-    Parent = mainFrame
-})
-createInstance("UICorner", { CornerRadius = UDim.new(0, CONFIG.UI.CornerSize), Parent = shadowFrame })
-createInstance("UIGradient", {
-    Color = ColorSequence.new(Color3.fromRGB(0,0,0), Color3.fromRGB(0,0,0)),
-    Transparency = NumberSequence.new(0.6, 1),
-    Rotation = 90,
-    Parent = shadowFrame
+    DisplayOrder = 2,
+    Parent = baseBackground
 })
 
--- ================================================================================================================
--- 7. KOMPONEN: HEADER & TITLE BAR
--- ================================================================================================================
+local gridGradient = createInstance("UIGradient", {
+    Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Colors.Grid),
+        ColorSequenceKeypoint.new(0.5, Colors.Background),
+        ColorSequenceKeypoint.new(1, Colors.Grid)
+    }),
+    Rotation = 90,
+    Parent = gridBackground
+})
+
+-- Animasi Grid Bergerak
+task.spawn(function()
+    local offset = 0
+    while screenGui and screenGui.Parent do
+        offset = (offset + 0.001) % 1
+        gridGradient.Offset = Vector2.new(0, offset)
+        task.wait()
+    end
+end)
+
+-- Scanline Overlay Effect
+local scanlineOverlay = createInstance("Frame", {
+    Name = "ScanlineOverlay",
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundColor3 = Colors.Background,
+    BackgroundTransparency = 0.9,
+    BorderSizePixel = 0,
+    DisplayOrder = 3,
+    Parent = baseBackground
+})
+
+local scanlineGradient = createInstance("UIGradient", {
+    Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 255, 65)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 0, 0)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 255, 65))
+    }),
+    Rotation = 90,
+    Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 0.9),
+        NumberSequenceKeypoint.new(0.5, 0.95),
+        NumberSequenceKeypoint.new(1, 0.9)
+    }),
+    Parent = scanlineOverlay
+})
+
+-- // WATERMARK (Moved to Top-Right, DisplayOrder: 100)
+-- ==========================================================================================================
+
+local watermark = createInstance("Frame", {
+    Name = "Watermark",
+    Size = UDim2.new(0, 220, 0, 30),
+    Position = UDim2.new(1, -230, 0, 10), -- Posisi Kanan Atas
+    BackgroundColor3 = Colors.Surface,
+    BackgroundTransparency = 0.2,
+    BorderSizePixel = 0,
+    DisplayOrder = 100, -- Paling atas
+    Parent = screenGui
+})
+
+createInstance("UICorner", {CornerRadius = UDim.new(0, 4), Parent = watermark})
+createInstance("UIStroke", {Color = Colors.Primary, Thickness = 1, Transparency = 0.5, Parent = watermark})
+
+local watermarkText = createInstance("TextLabel", {
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundTransparency = 1,
+    Text = "⚡ ZETHUB V-MAX | SECURE CONNECTION",
+    Font = Enum.Font.Code,
+    TextSize = 12,
+    TextColor3 = Colors.Primary,
+    Parent = watermark
+})
+
+-- Animasi Watermark Berkedip
+task.spawn(function()
+    while screenGui and screenGui.Parent do
+        tweenObject(watermarkText, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {TextTransparency = 0.2})
+        task.wait(1.5)
+        tweenObject(watermarkText, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {TextTransparency = 0})
+        task.wait(1.5)
+    end
+end)
+
+-- // MAIN CONTAINER (DisplayOrder: 10)
+-- ==========================================================================================================
+
+local mainContainer = createInstance("Frame", {
+    Name = "MainContainer",
+    Size = UDim2.new(0.95, 0, 0.90, 0), -- Hampir full screen di HP
+    Position = UDim2.new(0.025, 0, 0.05, 0),
+    BackgroundColor3 = Colors.Surface,
+    BorderSizePixel = 0,
+    ClipsDescendants = true,
+    DisplayOrder = 10,
+    Parent = baseBackground
+})
+
+createInstance("UICorner", {CornerRadius = UDim.new(0, 16), Parent = mainContainer})
+createInstance("UIStroke", {Name = "MainStroke", Color = Colors.PrimaryDim, Thickness = 2, Parent = mainContainer})
+
+-- Animasi Border RGB Sederhana
+task.spawn(function()
+    local hue = 0.33 -- Mulai dari hijau
+    while screenGui and screenGui.Parent do
+        hue = (hue + 0.002) % 1
+        local color = Color3.fromHSV(hue, 0.8, 1)
+        tweenObject(mainContainer:FindFirstChild("MainStroke"), TweenInfo.new(0.1), {Color = color})
+        task.wait(0.05)
+    end
+end)
+
+-- // HEADER SECTION
+-- ==========================================================================================================
+
 local header = createInstance("Frame", {
     Name = "Header",
     Size = UDim2.new(1, 0, 0, 60),
-    BackgroundColor3 = Color3.fromRGB(10, 10, 14),
+    BackgroundColor3 = Colors.SurfaceLight,
     BorderSizePixel = 0,
-    Parent = mainFrame
+    Parent = mainContainer
 })
 
-createInstance("UICorner", {
-    CornerRadius = UDim.new(0, CONFIG.UI.CornerSize),
-    Parent = header
-})
-
--- Fix bottom corner header (agar menyatu dengan main frame)
-createInstance("Frame", {
-    Size = UDim2.new(1, 0, 0, CONFIG.UI.CornerSize),
-    Position = UDim2.new(0, 0, 1, -CONFIG.UI.CornerSize),
-    BackgroundColor3 = Color3.fromRGB(10, 10, 14),
+createInstance("UICorner", {CornerRadius = UDim.new(0, 16), Parent = header})
+createInstance("Frame", { -- Fix bottom corner
+    Size = UDim2.new(1, 0, 0, 16),
+    Position = UDim2.new(0, 0, 1, -16),
+    BackgroundColor3 = Colors.SurfaceLight,
     BorderSizePixel = 0,
     Parent = header
 })
 
--- Title Text
-createInstance("TextLabel", {
-    Name = "Title",
-    Size = UDim2.new(1, -120, 1, 0),
+local headerTitle = createInstance("TextLabel", {
+    Name = "HeaderTitle",
+    Size = UDim2.new(1, -60, 1, 0),
     Position = UDim2.new(0, 20, 0, 0),
     BackgroundTransparency = 1,
-    Text = CONFIG.Text.Title,
-    Font = CONFIG.Text.FontBold,
+    Text = "ZETHUB // SYSTEM CHECK",
+    Font = Enum.Font.GothamBlack,
     TextSize = 22,
-    TextColor3 = CONFIG.Colors.TextMain,
+    TextColor3 = Colors.TextMain,
     TextXAlignment = Enum.TextXAlignment.Left,
     Parent = header
 })
 
--- ================================================================================================================
--- 8. KOMPONEN: [O] CHECKING INDICATOR (HIJAU, POJOK ATAS)
--- ================================================================================================================
-local checkingIndicator = createInstance("Frame", {
-    Name = "CheckingIndicator",
-    Size = UDim2.new(0, 130, 0, 30),
-    Position = UDim2.new(0, 15, 0, 15), -- Pojok kiri atas di dalam header/mainframe
-    BackgroundColor3 = Color3.fromRGB(0, 40, 20),
-    BorderSizePixel = 0,
-    Parent = mainFrame,
-    ZIndex = 10
-})
-
-createInstance("UICorner", { CornerRadius = UDim.new(0, 8), Parent = checkingIndicator })
-createInstance("UIStroke", {
-    Thickness = 1,
-    Color = CONFIG.Colors.Primary,
-    Parent = checkingIndicator
-})
-
-createInstance("TextLabel", {
-    Name = "CheckingText",
-    Size = UDim2.new(1, -10, 1, 0),
-    Position = UDim2.new(0, 5, 0, 0),
+local deviceStatus = createInstance("TextLabel", {
+    Name = "DeviceStatus",
+    Size = UDim2.new(0, 50, 1, 0),
+    Position = UDim2.new(1, -55, 0, 0),
     BackgroundTransparency = 1,
-    Text = CONFIG.Text.Checking,
-    Font = CONFIG.Text.FontBold,
-    TextSize = 14,
-    TextColor3 = CONFIG.Colors.Primary,
-    TextXAlignment = Enum.TextXAlignment.Left,
-    Parent = checkingIndicator
+    Text = isMobile and "" or "",
+    Font = Enum.Font.GothamBold,
+    TextSize = 24,
+    TextColor3 = Colors.Primary,
+    TextXAlignment = Enum.TextXAlignment.Right,
+    Parent = header
 })
 
--- Animasi berkedip untuk indicator
-task.spawn(function()
-    while screenGui and screenGui.Parent do
-        tweenObject(checkingIndicator:FindFirstChild("UIStroke"), { Transparency = 0 }, 0.8)
-        tweenObject(checkingIndicator:FindFirstChild("CheckingText"), { TextTransparency = 0 }, 0.8)
-        task.wait(0.8)
-        tweenObject(checkingIndicator:FindFirstChild("UIStroke"), { Transparency = 0.7 }, 0.8)
-        tweenObject(checkingIndicator:FindFirstChild("CheckingText"), { TextTransparency = 0.4 }, 0.8)
-        task.wait(0.8)
-    end
-end)
+-- // PROFILE SECTION
+-- ==========================================================================================================
 
--- ================================================================================================================
--- 9. KOMPONEN: TOMBOL CLOSE (X)
--- ================================================================================================================
-local closeBtn = createInstance("TextButton", {
-    Name = "CloseButton",
-    Size = UDim2.new(0, 40, 0, 40),
-    Position = UDim2.new(1, -50, 0, 10),
-    BackgroundColor3 = Color3.fromRGB(40, 10, 10),
-    BorderSizePixel = 0,
-    Text = CONFIG.Text.Close,
-    Font = CONFIG.Text.FontBold,
-    TextSize = 18,
-    TextColor3 = CONFIG.Colors.Error,
-    Parent = header,
-    ZIndex = 10
-})
-
-createInstance("UICorner", { CornerRadius = UDim.new(0, 8), Parent = closeBtn })
-
--- Efek Hover Close Button
-closeBtn.MouseEnter:Connect(function()
-    tweenObject(closeBtn, { BackgroundColor3 = Color3.fromRGB(60, 15, 15) }, 0.2)
-end)
-closeBtn.MouseLeave:Connect(function()
-    tweenObject(closeBtn, { BackgroundColor3 = Color3.fromRGB(40, 10, 10) }, 0.2)
-end)
-
-closeBtn.MouseButton1Click:Connect(function()
-    tweenObject(mainFrame, { Size = UDim2.new(0, 0, 0, 0), Transparency = 1 }, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-    task.wait(0.3)
-    screenGui:Destroy()
-end)
-
--- ================================================================================================================
--- 10. KOMPONEN: PROFILE PLAYER SECTION (FOTO & NAMA)
--- ================================================================================================================
 local profileSection = createInstance("Frame", {
     Name = "ProfileSection",
-    Size = UDim2.new(1, -40, 0, 100),
-    Position = UDim2.new(0, 20, 0, 70),
-    BackgroundTransparency = 1,
-    Parent = mainFrame
+    Size = UDim2.new(0.94, 0, 0, 80),
+    Position = UDim2.new(0.03, 0, 0, 75),
+    BackgroundColor3 = Colors.SurfaceLight,
+    BorderSizePixel = 0,
+    Parent = mainContainer
 })
 
--- Foto Profil (Avatar)
-local profileImage = createInstance("ImageLabel", {
-    Name = "ProfileImage",
-    Size = UDim2.new(0, 70, 0, 70),
-    Position = UDim2.new(0, 0, 0, 0),
-    BackgroundColor3 = Color3.fromRGB(30, 30, 40),
+createInstance("UICorner", {CornerRadius = UDim.new(0, 10), Parent = profileSection})
+createInstance("UIStroke", {Color = Colors.PrimaryDim, Thickness = 1, Transparency = 0.7, Parent = profileSection})
+
+-- Avatar Placeholder
+local avatarFrame = createInstance("Frame", {
+    Name = "AvatarFrame",
+    Size = UDim2.new(0, 50, 0, 50),
+    Position = UDim2.new(0, 15, 0, 15),
+    BackgroundColor3 = Colors.Primary,
     BorderSizePixel = 0,
-    Image = "rbxassetid://0", -- Akan diupdate
     Parent = profileSection
 })
-createInstance("UICorner", { CornerRadius = UDim.new(1, 0), Parent = profileImage }) -- Lingkaran
-createInstance("UIStroke", { Thickness = 2, Color = CONFIG.Colors.Secondary, Parent = profileImage })
+createInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = avatarFrame})
 
--- Load Thumbnail Async
+local avatarIcon = createInstance("TextLabel", {
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundTransparency = 1,
+    Text = string.sub(player.Name, 1, 2):upper(),
+    Font = Enum.Font.GothamBlack,
+    TextSize = 20,
+    TextColor3 = Colors.Background,
+    Parent = avatarFrame
+})
+
+-- User Info
+local usernameLabel = createInstance("TextLabel", {
+    Name = "UsernameLabel",
+    Size = UDim2.new(1, -80, 0, 30),
+    Position = UDim2.new(0, 75, 0, 10),
+    BackgroundTransparency = 1,
+    Text = player.Name,
+    Font = Enum.Font.GothamBold,
+    TextSize = 18,
+    TextColor3 = Colors.TextMain,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    Parent = profileSection
+})
+
+local userIdLabel = createInstance("TextLabel", {
+    Name = "UserIdLabel",
+    Size = UDim2.new(1, -80, 0, 20),
+    Position = UDim2.new(0, 75, 0, 35),
+    BackgroundTransparency = 1,
+    Text = "ID: " .. tostring(player.UserId),
+    Font = Enum.Font.Code,
+    TextSize = 12,
+    TextColor3 = Colors.TextDim,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    Parent = profileSection
+})
+
+local rankLabel = createInstance("TextLabel", {
+    Name = "RankLabel",
+    Size = UDim2.new(1, -80, 0, 20),
+    Position = UDim2.new(0, 75, 0, 52),
+    BackgroundTransparency = 1,
+    Text = "STATUS: OPERATIONAL",
+    Font = Enum.Font.Code,
+    TextSize = 11,
+    TextColor3 = Colors.Primary,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    Parent = profileSection
+})
+
+-- // CHECKING INDICATOR & PROGRESS SECTION
+-- ==========================================================================================================
+
+local checkSection = createInstance("Frame", {
+    Name = "CheckSection",
+    Size = UDim2.new(0.94, 0, 0, 100),
+    Position = UDim2.new(0.03, 0, 0, 170),
+    BackgroundTransparency = 1,
+    Parent = mainContainer
+})
+
+-- Green "O" Checking Indicator
+local indicatorFrame = createInstance("Frame", {
+    Name = "IndicatorFrame",
+    Size = UDim2.new(0, 60, 0, 60),
+    Position = UDim2.new(0, 0, 0, 0),
+    BackgroundColor3 = Colors.SurfaceLight,
+    BorderSizePixel = 0,
+    Parent = checkSection
+})
+createInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = indicatorFrame})
+
+local indicatorStroke = createInstance("UIStroke", {
+    Name = "IndicatorStroke",
+    Color = Colors.Warning,
+    Thickness = 4,
+    Parent = indicatorFrame
+})
+
+local indicatorText = createInstance("TextLabel", {
+    Name = "IndicatorText",
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundTransparency = 1,
+    Text = "O",
+    Font = Enum.Font.GothamBlack,
+    TextSize = 28,
+    TextColor3 = Colors.Warning,
+    Parent = indicatorFrame
+})
+
+-- Animasi Spinner untuk Indicator
 task.spawn(function()
-    local thumbUrl = getPlayerThumbnail(player.UserId)
-    if profileImage and profileImage.Parent then
-        profileImage.Image = thumbUrl
+    local rotation = 0
+    while screenGui and screenGui.Parent do
+        rotation = (rotation + 5) % 360
+        indicatorFrame.Rotation = rotation
+        task.wait(0.02)
     end
 end)
 
--- Nama Player
-createInstance("TextLabel", {
-    Name = "PlayerName",
-    Size = UDim2.new(1, -90, 0, 30),
-    Position = UDim2.new(0, 85, 0, 5),
+-- Current Task Text
+local currentTaskLabel = createInstance("TextLabel", {
+    Name = "CurrentTaskLabel",
+    Size = UDim2.new(1, -80, 0, 30),
+    Position = UDim2.new(0, 75, 0, 5),
     BackgroundTransparency = 1,
-    Text = player.DisplayName,
-    Font = CONFIG.Text.FontBold,
-    TextSize = 20,
-    TextColor3 = CONFIG.Colors.TextMain,
+    Text = "INITIALIZING SYSTEM...",
+    Font = Enum.Font.GothamBold,
+    TextSize = 16,
+    TextColor3 = Colors.TextMain,
     TextXAlignment = Enum.TextXAlignment.Left,
-    Parent = profileSection
+    Parent = checkSection
 })
 
-createInstance("TextLabel", {
-    Name = "PlayerUsername",
-    Size = UDim2.new(1, -90, 0, 20),
-    Position = UDim2.new(0, 85, 0, 35),
+local subTaskLabel = createInstance("TextLabel", {
+    Name = "SubTaskLabel",
+    Size = UDim2.new(1, -80, 0, 20),
+    Position = UDim2.new(0, 75, 0, 30),
     BackgroundTransparency = 1,
-    Text = "@" .. player.Name,
-    Font = CONFIG.Text.Font,
-    TextSize = 14,
-    TextColor3 = CONFIG.Colors.TextMuted,
+    Text = "Preparing environment variables",
+    Font = Enum.Font.Code,
+    TextSize = 11,
+    TextColor3 = Colors.TextDim,
     TextXAlignment = Enum.TextXAlignment.Left,
-    Parent = profileSection
+    Parent = checkSection
 })
 
--- Informasi Executor
-createInstance("TextLabel", {
-    Name = "ExecutorInfo",
-    Size = UDim2.new(1, -90, 0, 25),
-    Position = UDim2.new(0, 85, 0, 65),
-    BackgroundTransparency = 1,
-    Text = "⚡ Executor: " .. executorName,
-    Font = CONFIG.Text.FontCode,
-    TextSize = 13,
-    TextColor3 = CONFIG.Colors.Warning,
-    TextXAlignment = Enum.TextXAlignment.Left,
-    Parent = profileSection
-})
-
--- ================================================================================================================
--- 11. KOMPONEN: LOADING BAR
--- ================================================================================================================
-local barContainer = createInstance("Frame", {
-    Name = "BarContainer",
-    Size = UDim2.new(1, -40, 0, 30),
-    Position = UDim2.new(0, 20, 0, 180),
-    BackgroundColor3 = Color3.fromRGB(20, 20, 28),
+-- Progress Bar Container
+local progressContainer = createInstance("Frame", {
+    Name = "ProgressContainer",
+    Size = UDim2.new(1, -80, 0, 12),
+    Position = UDim2.new(0, 75, 0, 60),
+    BackgroundColor3 = Colors.Background,
     BorderSizePixel = 0,
-    Parent = mainFrame
+    Parent = checkSection
 })
-createInstance("UICorner", { CornerRadius = UDim.new(0, 8), Parent = barContainer })
-createInstance("UIStroke", { Thickness = 1, Color = Color3.fromRGB(40, 40, 50), Parent = barContainer })
+createInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = progressContainer})
+createInstance("UIStroke", {Color = Colors.SurfaceLight, Thickness = 1, Parent = progressContainer})
 
-local barFill = createInstance("Frame", {
-    Name = "BarFill",
+-- Progress Bar Fill
+local progressFill = createInstance("Frame", {
+    Name = "ProgressFill",
     Size = UDim2.new(0, 0, 1, 0),
-    BackgroundColor3 = CONFIG.Colors.Primary,
+    BackgroundColor3 = Colors.Primary,
     BorderSizePixel = 0,
-    Parent = barContainer
+    Parent = progressContainer
 })
-createInstance("UICorner", { CornerRadius = UDim.new(0, 8), Parent = barFill })
+createInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = progressFill})
 
--- Gradient pada Loading Bar
-createInstance("UIGradient", {
+-- Progress Glow Effect
+local progressGlow = createInstance("UIGradient", {
     Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 255, 136)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 200, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 255, 136))
+        ColorSequenceKeypoint.new(0, Colors.PrimaryDim),
+        ColorSequenceKeypoint.new(0.5, Colors.Primary),
+        ColorSequenceKeypoint.new(1, Colors.Secondary)
     }),
-    Parent = barFill
+    Parent = progressFill
 })
 
--- Persentase Text
-local percentText = createInstance("TextLabel", {
-    Name = "Percent",
+local progressText = createInstance("TextLabel", {
+    Name = "ProgressText",
     Size = UDim2.new(1, 0, 1, 0),
     BackgroundTransparency = 1,
     Text = "0%",
-    Font = CONFIG.Text.FontBold,
-    TextSize = 16,
-    TextColor3 = CONFIG.Colors.TextMain,
-    TextXAlignment = Enum.TextXAlignment.Center,
-    ZIndex = 5,
-    Parent = barContainer
+    Font = Enum.Font.Code,
+    TextSize = 11,
+    TextColor3 = Colors.Primary,
+    TextXAlignment = Enum.TextXAlignment.Right,
+    Parent = progressContainer
 })
 
--- ================================================================================================================
--- 12. KOMPONEN: LOG / SCROLLING AREA
--- ================================================================================================================
-local logScroll = createInstance("ScrollingFrame", {
-    Name = "LogScroll",
-    Size = UDim2.new(1, -40, 1, -320),
-    Position = UDim2.new(0, 20, 0, 225),
-    BackgroundColor3 = CONFIG.Colors.LogBackground,
+-- // CONSOLE / LOG SECTION
+-- ==========================================================================================================
+
+local consoleSection = createInstance("Frame", {
+    Name = "ConsoleSection",
+    Size = UDim2.new(0.94, 0, 1, -340), -- Sisa ruang
+    Position = UDim2.new(0.03, 0, 0, 285),
+    BackgroundColor3 = Colors.Background,
     BorderSizePixel = 0,
-    ScrollBarThickness = 6,
-    ScrollBarImageColor3 = CONFIG.Colors.Secondary,
+    Parent = mainContainer
+})
+createInstance("UICorner", {CornerRadius = UDim.new(0, 10), Parent = consoleSection})
+createInstance("UIStroke", {Color = Colors.SurfaceLight, Thickness = 1, Parent = consoleSection})
+
+local consoleScroll = createInstance("ScrollingFrame", {
+    Name = "ConsoleScroll",
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+    ScrollBarThickness = 4,
+    ScrollBarImageColor3 = Colors.Primary,
     CanvasSize = UDim2.new(0, 0, 0, 0),
     AutomaticCanvasSize = Enum.AutomaticSize.Y,
-    Parent = mainFrame
+    Parent = consoleSection
 })
-createInstance("UICorner", { CornerRadius = UDim.new(0, 8), Parent = logScroll })
-createInstance("UIStroke", { Thickness = 1, Color = Color3.fromRGB(30, 30, 40), Parent = logScroll })
+createInstance("UICorner", {CornerRadius = UDim.new(0, 10), Parent = consoleScroll})
 
-local logLayout = createInstance("UIListLayout", {
-    Padding = UDim.new(0, 6),
+local consoleList = createInstance("UIListLayout", {
+    Padding = UDim.new(0, 2),
     SortOrder = Enum.SortOrder.LayoutOrder,
-    Parent = logScroll
+    Parent = consoleScroll
 })
 
-createInstance("UIPadding", {
-    PaddingTop = UDim.new(0, 10),
-    PaddingBottom = UDim.new(0, 10),
-    PaddingLeft = UDim.new(0, 10),
-    PaddingRight = UDim.new(0, 10),
-    Parent = logScroll
+local consolePadding = createInstance("UIPadding", {
+    PaddingTop = UDim.new(0, 8),
+    PaddingBottom = UDim.new(0, 8),
+    PaddingLeft = UDim.new(0, 8),
+    PaddingRight = UDim.new(0, 8),
+    Parent = consoleScroll
 })
 
--- ================================================================================================================
--- 13. KOMPONEN: TOMBOL CONTINUE (HIJAU, MUNCUL SETELAH SELESAI)
--- ================================================================================================================
-local continueBtn = createInstance("TextButton", {
+-- Fungsi untuk menambah log ke console
+local logOrder = 0
+local function addLog(message, status)
+    logOrder = logOrder + 1
+    
+    local logEntry = createInstance("Frame", {
+        Name = "LogEntry_" .. logOrder,
+        Size = UDim2.new(1, 0, 0, 24),
+        BackgroundTransparency = 1,
+        LayoutOrder = logOrder,
+        Parent = consoleScroll
+    })
+    
+    local timestamp = createInstance("TextLabel", {
+        Size = UDim2.new(0, 65, 1, 0),
+        BackgroundTransparency = 1,
+        Text = "[" .. getTimestamp() .. "]",
+        Font = Enum.Font.Code,
+        TextSize = 10,
+        TextColor3 = Colors.TextDim,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = logEntry
+    })
+    
+    local statusIcon = createInstance("TextLabel", {
+        Name = "StatusIcon",
+        Size = UDim2.new(0, 20, 1, 0),
+        Position = UDim2.new(0, 65, 0, 0),
+        BackgroundTransparency = 1,
+        Text = "~",
+        Font = Enum.Font.GothamBlack,
+        TextSize = 14,
+        TextColor3 = Colors.Warning,
+        TextXAlignment = Enum.TextXAlignment.Center,
+        Parent = logEntry
+    })
+    
+    local messageText = createInstance("TextLabel", {
+        Name = "MessageText",
+        Size = UDim2.new(1, -90, 1, 0),
+        Position = UDim2.new(0, 85, 0, 0),
+        BackgroundTransparency = 1,
+        Text = message,
+        Font = Enum.Font.Code,
+        TextSize = 11,
+        TextColor3 = Colors.TextMain,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = logEntry
+    })
+    
+    -- Auto scroll ke bawah
+    task.spawn(function()
+        task.wait(0.1)
+        consoleScroll.CanvasPosition = Vector2.new(0, consoleScroll.AbsoluteCanvasSize.Y)
+    end)
+    
+    return statusIcon
+end
+
+-- Fungsi untuk mengupdate status icon menjadi "O" Hijau
+local function markLogSuccess(statusIcon)
+    if statusIcon then
+        statusIcon.Text = "O"
+        statusIcon.TextColor3 = Colors.Primary
+        tweenObject(statusIcon, TweenInfo.new(0.3), {TextTransparency = 0})
+        
+        -- Efek glow sesaat
+        local glow = createInstance("UIStroke", {Color = Colors.Primary, Thickness = 0, Parent = statusIcon})
+        tweenObject(glow, TweenInfo.new(0.3), {Thickness = 2})
+        task.wait(0.5)
+        tweenObject(glow, TweenInfo.new(0.3), {Thickness = 0})
+    end
+end
+
+-- // CONTINUE BUTTON (Hidden Initially)
+-- ==========================================================================================================
+
+local continueButton = createInstance("TextButton", {
     Name = "ContinueButton",
-    Size = UDim2.new(1, -40, 0, 50),
-    Position = UDim2.new(0, 20, 1, -70),
-    BackgroundColor3 = CONFIG.Colors.Primary,
+    Size = UDim2.new(0.94, 0, 0, 50),
+    Position = UDim2.new(0.03, 0, 1, -65),
+    BackgroundColor3 = Colors.Primary,
     BorderSizePixel = 0,
-    Text = CONFIG.Text.Continue,
-    Font = CONFIG.Text.FontBold,
+    Text = "CONTINUE/FINISHED",
+    Font = Enum.Font.GothamBlack,
     TextSize = 18,
-    TextColor3 = Color3.fromRGB(0, 0, 0),
-    Visible = false, -- Tersembunyi sampai loading 100%
-    Parent = mainFrame,
-    ZIndex = 20
+    TextColor3 = Colors.Background,
+    Visible = false,
+    Parent = mainContainer
 })
-createInstance("UICorner", { CornerRadius = UDim.new(0, 10), Parent = continueBtn })
+createInstance("UICorner", {CornerRadius = UDim.new(0, 10), Parent = continueButton})
 
--- Animasi Pulse untuk tombol Continue
+local buttonGlow = createInstance("UIGradient", {
+    Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Colors.PrimaryDim),
+        ColorSequenceKeypoint.new(0.5, Colors.Primary),
+        ColorSequenceKeypoint.new(1, Colors.PrimaryDim)
+    }),
+    Rotation = 90,
+    Parent = continueButton
+})
+
+-- Animasi tombol continue berdenyut
 task.spawn(function()
     while screenGui and screenGui.Parent do
-        if continueBtn.Visible then
-            tweenObject(continueBtn, { Size = UDim2.new(1, -30, 0, 52) }, 0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-            task.wait(0.6)
-            tweenObject(continueBtn, { Size = UDim2.new(1, -40, 0, 50) }, 0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-            task.wait(0.6)
+        if continueButton.Visible then
+            tweenObject(continueButton, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {BackgroundTransparency = 0.1})
+            task.wait(1.5)
+            tweenObject(continueButton, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {BackgroundTransparency = 0})
+            task.wait(1.5)
         else
             task.wait(1)
         end
     end
 end)
 
--- Efek Hover Continue Button
-continueBtn.MouseEnter:Connect(function()
-    tweenObject(continueBtn, { BackgroundColor3 = Color3.fromRGB(50, 255, 150) }, 0.2)
-end)
-continueBtn.MouseLeave:Connect(function()
-    tweenObject(continueBtn, { BackgroundColor3 = CONFIG.Colors.Primary }, 0.2)
-end)
-
--- LOGIKA PENGHANCURAN SCRIPT SAAT CONTINUE DIKLIK
-continueBtn.MouseButton1Click:Connect(function()
-    addLog("[SYSTEM] Menghancurkan UI dan membersihkan memori...", CONFIG.Colors.Error)
-    tweenObject(mainFrame, { Size = UDim2.new(0, 0, 0, 0), Transparency = 1 }, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-    task.wait(0.4)
+-- Continue Button Action
+continueButton.MouseButton1Click:Connect(function()
+    -- Efek shutdown
+    currentTaskLabel.Text = "SYSTEM PURGE INITIATED"
+    currentTaskLabel.TextColor3 = Colors.Primary
+    indicatorText.Text = "✓"
+    indicatorText.TextColor3 = Colors.Primary
+    indicatorStroke.Color = Colors.Primary
     
-    -- Hentikan semua animasi yang berjalan
-    for _, child in ipairs(screenGui:GetDescendants()) do
-        if child:IsA("Tween") then child:Cancel() end
+    tweenObject(mainContainer, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+        Transparency = 1,
+        Size = UDim2.new(0.94, 0, 0, 0)
+    })
+    
+    tweenObject(baseBackground, TweenInfo.new(0.8, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+        BackgroundTransparency = 1
+    })
+    
+    task.wait(0.8)
+    if screenGui then
+        screenGui:Destroy()
     end
-    
-    screenGui:Destroy()
-    addLog("[SYSTEM] UI berhasil dihancurkan. Selamat bermain!", CONFIG.Colors.Primary)
 end)
 
--- ================================================================================================================
--- 14. FUNGSI LOGIKA & EKSEKUSI
--- ================================================================================================================
-local logCount = 0
+-- // EXECUTION LOGIC
+-- ==========================================================================================================
 
--- Fungsi menambahkan log dengan format yang indah
-function addLog(text, color)
-    logCount = logCount + 1
+local function updateProgress(percent, taskName, subTaskName)
+    tweenObject(progressFill, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {Size = UDim2.new(percent / 100, 0, 1, 0)})
+    progressText.Text = math.floor(percent) .. "%"
     
-    local logEntry = createInstance("Frame", {
-        Size = UDim2.new(1, 0, 0, 24),
-        BackgroundTransparency = 1,
-        LayoutOrder = logCount,
-        Parent = logScroll
-    })
-    
-    createInstance("TextLabel", {
-        Size = UDim2.new(1, 0, 1, 0),
-        BackgroundTransparency = 1,
-        Text = text,
-        Font = CONFIG.Text.FontCode,
-        TextSize = 13,
-        TextColor3 = color or CONFIG.Colors.TextMain,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        TextWrapped = true,
-        Parent = logEntry
-    })
-    
-    -- Auto scroll ke bawah
-    task.wait(0.05)
-    logScroll.CanvasPosition = Vector2.new(0, logScroll.AbsoluteCanvasSize.Y)
-end
-
--- Fungsi update loading bar dengan tween
-function updateBar(percent)
-    percent = math.clamp(percent, 0, 100)
-    tweenObject(barFill, { Size = UDim2.new(percent / 100, 0, 1, 0) }, 0.5)
-    
-    -- Update text secara bertahap
-    local currentText = tonumber(string.match(percentText.Text, "%d+")) or 0
-    local targetText = math.floor(percent)
-    
-    percentText.Text = targetText .. "%"
-    
-    if percent == 100 then
-        percentText.Text = "100% - SELESAI"
-        tweenObject(barFill, { BackgroundColor3 = Color3.fromRGB(0, 255, 136) }, 0.5)
-        
-        -- Tampilkan tombol continue
-        continueBtn.Visible = true
-        tweenObject(continueBtn, { BackgroundTransparency = 0 }, 0.5)
-        
-        -- Ubah indicator checking menjadi DONE
-        checkingIndicator:FindFirstChild("CheckingText").Text = "[✓] DONE"
-        checkingIndicator:FindFirstChild("CheckingText").TextColor3 = Color3.fromRGB(0, 255, 136)
+    if taskName then
+        glitchText(currentTaskLabel, taskName, 0.3)
+    end
+    if subTaskName then
+        subTaskLabel.Text = subTaskName
     end
 end
 
--- ================================================================================================================
--- 15. ANIMASI PEMBUKAAN UI (OPENING ANIMATION)
--- ================================================================================================================
+local function executeStage(stageName, url, progressStart, progressEnd)
+    local statusIcon = addLog("Injecting: " .. stageName, "warning")
+    updateProgress(progressStart, "INJECTING MODULE", stageName)
+    task.wait(1.5)
+    
+    local success, err = pcall(function()
+        loadstring(game:HttpGet(url))()
+    end)
+    
+    if success then
+        markLogSuccess(statusIcon)
+        addLog("SUCCESS: " .. stageName .. " loaded", "success")
+        updateProgress(progressEnd, "MODULE VERIFIED", "Checksum validation passed")
+        task.wait(1)
+    else
+        statusIcon.Text = "X"
+        statusIcon.TextColor3 = Colors.Danger
+        addLog("FAILED: " .. stageName .. " (" .. tostring(err) .. ")", "error")
+        updateProgress(progressEnd, "MODULE FAILED", "Bypassing error...")
+        task.wait(1)
+    end
+end
+
+-- Main Checking Sequence
 task.spawn(function()
-    -- Mulai dari kecil dan transparan
-    mainFrame.Size = UDim2.new(0, 0, 0, 0)
-    mainFrame.BackgroundTransparency = 1
+    -- Mobile Warning (Optional, tapi tetap lanjut)
+    if not isMobile then
+        addLog("WARNING: System optimized for Mobile", "warning")
+        task.wait(1)
+    end
     
-    -- Animasi masuk (Slide up + Scale + Fade)
-    task.wait(0.2)
-    tweenObject(mainFrame, { 
-        Size = CONFIG.UI.MainSize,
-        BackgroundTransparency = 0
-    }, 0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    addLog("System boot sequence initiated", "info")
+    updateProgress(5, "INITIALIZING", "Allocating memory resources")
+    task.wait(1.5)
+    
+    addLog("Device fingerprint: " .. (isMobile and "MOBILE_TOUCH" or "PC_MOUSE"), "info")
+    updateProgress(10, "ENVIRONMENT SCAN", "Verifying hardware constraints")
+    task.wait(1.5)
+    
+    -- Stage 1: Mobile Keyboard (Khusus Mobile)
+    if isMobile then
+        executeStage(
+            "Delta Mobile Keyboard",
+            "https://raw.githubusercontent.com/BloxinStud10/AStashOfRandomScripts/refs/heads/main/DeltaKeyboard.txt",
+            20, 35
+        )
+    else
+        updateProgress(35, "SKIPPED", "Mobile keyboard not required on PC")
+        task.wait(1)
+    end
+    
+    -- Stage 2: Anti-Cheat V1
+    executeStage(
+        "Anti-Cheat Remover V1",
+        "https://raw.githubusercontent.com/c00lhaxOFFICAL/GrayScriptsAntiCheatRemoverV2LITE/refs/heads/main/GrayGrayGray",
+        40, 55
+    )
+    
+    -- Stage 3: Anti-Cheat V2
+    executeStage(
+        "Anti-Cheat Remover V2 PLUS",
+        "https://raw.githubusercontent.com/c00lhaxOFFICAL/GrayScriptsAntiCheatRemoverV2PLUS/refs/heads/main/V2PLUS",
+        60, 75
+    )
+    
+    -- Stage 4: Infinite Yield
+    local iyUrl = isMobile 
+        and "https://rawscripts.net/raw/Universal-Script-Infinite-Yield-Bypass-Anticheat-open-source-194150"
+        or "https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"
+        
+    executeStage(
+        "Infinite Yield (" .. (isMobile and "Mobile Bypass" or "PC Standard") .. ")",
+        iyUrl,
+        80, 90
+    )
+    
+    -- Stage 5: ZETHUB Core
+    executeStage(
+        "ZETHUB Core Framework",
+        "https://raw.githubusercontent.com/Zyptrue/ZETHUB/refs/heads/main/Main%20Script",
+        95, 100
+    )
+    
+    -- Finalization
+    updateProgress(100, "SYSTEM READY", "All modules verified and operational")
+    addLog("========================================", "info")
+    addLog("ALL SCRIPTS LOADED SUCCESSFULLY", "success")
+    addLog("ZETHUB V-Max is now active", "success")
+    addLog("========================================", "info")
+    
+    -- Ubah indicator menjadi centang hijau besar
+    indicatorFrame.Rotation = 0
+    indicatorText.Text = "✓"
+    indicatorText.TextColor3 = Colors.Primary
+    indicatorStroke.Color = Colors.Primary
+    
+    -- Tampilkan tombol continue dengan animasi
+    task.wait(1)
+    continueButton.Visible = true
+    tweenObject(continueButton, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Position = UDim2.new(0.03, 0, 1, -65),
+        Transparency = 0
+    })
 end)
 
--- ================================================================================================================
--- 16. DRAGGABLE UI LOGIC (MOBILE & PC)
--- ================================================================================================================
+-- // DRAGGABLE FUNCTIONALITY (Untuk Mobile & PC)
+-- ==========================================================================================================
 task.spawn(function()
     local dragging = false
-    local dragInput, mousePos, framePos
+    local dragInput, dragStart, startPos
 
     header.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
-            mousePos = input.Position
-            framePos = mainFrame.Position
+            dragStart = input.Position
+            startPos = mainContainer.Position
             
             input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
@@ -623,146 +803,18 @@ task.spawn(function()
 
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
-            local delta = input.Position - mousePos
-            -- Batasi agar tidak keluar layar
-            local newX = math.clamp(framePos.X.Offset + delta.X, -mainFrame.AbsoluteSize.X/2, workspace.CurrentCamera.ViewportSize.X - mainFrame.AbsoluteSize.X/2)
-            local newY = math.clamp(framePos.Y.Offset + delta.Y, 0, workspace.CurrentCamera.ViewportSize.Y - mainFrame.AbsoluteSize.Y/2)
+            local delta = input.Position - dragStart
+            local viewport = workspace.CurrentCamera.ViewportSize
             
-            mainFrame.Position = UDim2.new(
-                framePos.X.Scale, newX,
-                framePos.Y.Scale, newY
-            )
+            -- Batasi agar tidak keluar layar
+            local newX = math.clamp(startPos.X.Offset + delta.X, 0, viewport.X - mainContainer.AbsoluteSize.X)
+            local newY = math.clamp(startPos.Y.Offset + delta.Y, 0, viewport.Y - mainContainer.AbsoluteSize.Y)
+            
+            mainContainer.Position = UDim2.new(0, newX, 0, newY)
         end
     end)
 end)
 
--- ================================================================================================================
--- 17. SEKUENS EKSEKUSI SCRIPT (EXECUTION SEQUENCE)
--- ================================================================================================================
-task.spawn(function()
-    addLog("══════════════════════════════════════════════", CONFIG.Colors.TextMuted)
-    addLog("[SYSTEM] Initializing ZETHUB Environment...", CONFIG.Colors.Secondary)
-    addLog("[SYSTEM] Device Detected: " .. (isMobile and "📱 MOBILE" or "💻 PC"), CONFIG.Colors.Secondary)
-    addLog("[SYSTEM] Executor Detected: " .. executorName, CONFIG.Colors.Warning)
-    addLog("══════════════════════════════════════════════", CONFIG.Colors.TextMuted)
-    updateBar(5)
-    task.wait(1.5)
-    
-    addLog("[+] Checking Game Environment...", CONFIG.Colors.TextMain)
-    updateBar(10)
-    task.wait(1.5)
-    
-    addLog("[+] Environment Verified Successfully!", CONFIG.Colors.Primary)
-    updateBar(15)
-    task.wait(1)
-    
-    -- STAGE 1: Keyboard (Mobile Only)
-    if isMobile then
-        addLog("[+] Attaching: Virtual Keyboard For Mobile", CONFIG.Colors.Warning)
-        updateBar(25)
-        task.wait(1.5)
-        pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/BloxinStud10/AStashOfRandomScripts/refs/heads/main/DeltaKeyboard.txt"))()
-        end)
-        addLog("[✓] Done! - Keyboard Attached", CONFIG.Colors.Primary)
-        updateBar(30)
-        task.wait(1)
-    else
-        addLog("[i] Skipping Mobile Keyboard (PC Detected)", CONFIG.Colors.TextMuted)
-        updateBar(30)
-        task.wait(1)
-    end
-    
-    -- STAGE 2: Anti-Cheat V1
-    addLog("[+] Attaching: Anti-Cheat Remover V1 (Lite)", CONFIG.Colors.Warning)
-    updateBar(40)
-    task.wait(1.5)
-    local ac1Success, ac1Err = pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/c00lhaxOFFICAL/GrayScriptsAntiCheatRemoverV2LITE/refs/heads/main/GrayGrayGray"))()
-    end)
-    if ac1Success then
-        addLog("[✓] Done! - Anti-Cheat V1 Bypassed", CONFIG.Colors.Primary)
-    else
-        addLog("[-] Failed: Anti-Cheat V1 (" .. tostring(ac1Err) .. ")", CONFIG.Colors.Error)
-    end
-    updateBar(50)
-    task.wait(1)
-    
-    -- STAGE 3: Anti-Cheat V2
-    addLog("[+] Attaching: Anti-Cheat Remover V2 (Plus)", CONFIG.Colors.Warning)
-    updateBar(60)
-    task.wait(1.5)
-    local ac2Success, ac2Err = pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/c00lhaxOFFICAL/GrayScriptsAntiCheatRemoverV2PLUS/refs/heads/main/V2PLUS"))()
-    end)
-    if ac2Success then
-        addLog("[✓] Done! - Anti-Cheat V2 Bypassed", CONFIG.Colors.Primary)
-    else
-        addLog("[-] Failed: Anti-Cheat V2 (" .. tostring(ac2Err) .. ")", CONFIG.Colors.Error)
-    end
-    updateBar(70)
-    task.wait(1)
-    
-    -- STAGE 4: Infinite Yield
-    local iyUrl = isMobile 
-        and "https://rawscripts.net/raw/Universal-Script-Infinite-Yield-Bypass-Anticheat-open-source-194150"
-        or "https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"
-        
-    addLog("[+] Attaching: Infinite Yield (" .. (isMobile and "Mobile Bypass" or "PC Standard") .. ")", CONFIG.Colors.Warning)
-    updateBar(80)
-    task.wait(1.5)
-    local iySuccess, iyErr = pcall(function()
-        loadstring(game:HttpGet(iyUrl))()
-    end)
-    if iySuccess then
-        addLog("[✓] Done! - Infinite Yield Loaded", CONFIG.Colors.Primary)
-    else
-        addLog("[-] Failed: Infinite Yield (" .. tostring(iyErr) .. ")", CONFIG.Colors.Error)
-    end
-    updateBar(90)
-    task.wait(1)
-    
-    -- STAGE 5: ZETHUB Main Script
-    addLog("[+] Attaching: ZETHUB | Latest Core Update", CONFIG.Colors.Warning)
-    updateBar(95)
-    task.wait(2)
-    local zethubSuccess, zethubErr = pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/Zyptrue/ZETHUB/refs/heads/main/Main%20Script"))()
-    end)
-    if zethubSuccess then
-        addLog("[✓] Done! - ZETHUB Core Loaded", CONFIG.Colors.Primary)
-    else
-        addLog("[-] Failed: ZETHUB Core (" .. tostring(zethubErr) .. ")", CONFIG.Colors.Error)
-    end
-    updateBar(100)
-    task.wait(1)
-    
-    -- FINALIZATION
-    addLog("══════════════════════════════════════════════", CONFIG.Colors.TextMuted)
-    addLog("[✓] ALL SCRIPTS LOADED SUCCESSFULLY!", CONFIG.Colors.Primary)
-    addLog("[ZETHUB] Thank you for using this script!", CONFIG.Colors.Warning)
-    addLog("[ZETHUB] Silakan klik tombol LANJUTKAN di bawah.", CONFIG.Colors.Secondary)
-    addLog("══════════════════════════════════════════════", CONFIG.Colors.TextMuted)
-    
-    -- CATATAN: Script TIDAK akan menghancurkan diri sendiri secara otomatis lagi.
-    -- Ia akan menunggu user menekan tombol "CONTINUE" yang muncul di UI.
-end)
-
--- ================================================================================================================
--- 18. BACKGROUND AMBIENT ANIMATION (TAMBAHAN ESTETIKA)
--- ================================================================================================================
-task.spawn(function()
-    local hue = 0
-    while screenGui and screenGui.Parent do
-        hue = (hue + 0.002) % 1
-        -- Ubah warna stroke utama secara perlahan (RGB effect yang halus)
-        if mainStroke then
-            mainStroke.Color = Color3.fromHSV(hue, 0.8, 1)
-        end
-        task.wait(0.03)
-    end
-end)
-
--- ================================================================================================================
--- AKHIR DARI SCRIPT
--- ================================================================================================================
+-- ==========================================================================================================
+-- END OF ZETHUB CYBERPUNK MOBILE SCRIPT
+-- ==========================================================================================================
