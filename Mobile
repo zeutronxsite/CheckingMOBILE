@@ -109,7 +109,7 @@ local screenGui = createInstance("ScreenGui", {
     ResetOnSpawn = false,
     ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
     IgnoreGuiInset = true,
-    DisplayOrder = 100, -- Valid di ScreenGui
+    DisplayOrder = 999999, -- Valid di ScreenGui
 })
 
 -- Safe parent logic
@@ -320,37 +320,58 @@ createInstance("UICorner", {CornerRadius = UDim.new(0, 10), Parent = profileSect
 createInstance("UIStroke", {Color = Colors.PrimaryDim, Thickness = 1, Transparency = 0.7, Parent = profileSection})
 
 -- Avatar Image (Real Character Photo)
+-- // PERBAIKAN BAGIAN AVATAR / FOTO PROFIL
+-- Ganti seluruh blok kode yang membuat 'avatarFrame' dan isinya dengan ini:
+
 local avatarFrame = createInstance("Frame", {
     Name = "AvatarFrame",
-    Size = UDim2.new(0, 50, 0, 50),
-    Position = UDim2.new(0, 15, 0, 15),
-    BackgroundColor3 = Colors.Surface,
+    Size = UDim2.new(0, 60, 0, 60), -- Ukuran sedikit diperbesar agar jelas
+    Position = UDim2.new(0, 15, 0, 10),
+    BackgroundColor3 = Color3.fromRGB(20, 20, 20),
     BorderSizePixel = 0,
-    ClipsDescendants = true,
+    ClipsDescendants = true, -- Penting agar gambar bulat sempurna
     ZIndex = 12,
     Parent = profileSection
 })
 createInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = avatarFrame})
 
+-- Fungsi untuk mengambil URL Avatar Terbaru
+local function getAvatarHeadshot(userId)
+    local url = string.format("https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=%d&size=150x150&format=Png&isCircular=false", userId)
+    local success, response = pcall(function()
+        return game:HttpGet(url)
+    end)
+    
+    if success then
+        local data = game:GetService("HttpService"):JSONDecode(response)
+        if data and data.data and #data.data > 0 then
+            return data.data[1].imageUrl
+        end
+    end
+    return nil
+end
+
+-- Eksekusi pengambilan gambar
+local avatarUrl = getAvatarHeadshot(player.UserId)
+
 if avatarUrl then
-    -- Jika berhasil ambil foto
+    -- Jika berhasil, buat ImageLabel
     createInstance("ImageLabel", {
-        Size = UDim2.new(1.2, 0, 1.2, 0), -- Sedikit lebih besar untuk crop
-        Position = UDim2.new(-0.1, 0, -0.1, 0),
+        Size = UDim2.new(1, 0, 1, 0),
         BackgroundTransparency = 1,
         Image = avatarUrl,
-        ScaleType = Enum.ScaleType.Crop,
+        ScaleType = Enum.ScaleType.Crop, -- Agar wajah pas di lingkaran
         ZIndex = 13,
         Parent = avatarFrame
     })
 else
-    -- Fallback jika gagal ambil foto (Inisial Nama)
+    -- Fallback jika gagal (Tampilkan Inisial Nama)
     createInstance("TextLabel", {
         Size = UDim2.new(1, 0, 1, 0),
         BackgroundTransparency = 1,
         Text = string.sub(player.Name, 1, 2):upper(),
         Font = Enum.Font.GothamBlack,
-        TextSize = 20,
+        TextSize = 24,
         TextColor3 = Colors.Primary,
         ZIndex = 13,
         Parent = avatarFrame
