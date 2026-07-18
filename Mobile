@@ -1,28 +1,24 @@
 -- ==========================================================================================================
--- ZETHUB | CYBERPUNK MOBILE LOADING & CHECKING SYSTEM (UPDATED)
+-- ZETHUB | CYBERPUNK MOBILE LOADING & CHECKING SYSTEM (FIXED)
 -- ==========================================================================================================
--- Theme: Cyberpunk / Hacker
--- Target: Mobile Optimized (Full Screen, Black Background, Touch Friendly)
--- Updates: 
---   - Added DisplayOrder for proper layering
---   - Moved Watermark to Top-Right
---   - Enhanced Visual Hierarchy
+-- Fixes: 
+--   - Replaced invalid 'DisplayOrder' on Frames with 'ZIndex'
+--   - Added Real User Avatar Fetching
+--   - Added Safety Checks for Script Loading
 -- ==========================================================================================================
 
 -- // SERVICES
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local HttpService = game:GetService("HttpService")
+local HttpService = game:GetService("HttpService") -- Diperlukan untuk decode JSON avatar
 
 -- // VARIABLES
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Device Detection (Optimized for Mobile)
+-- Device Detection
 local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
-local isPC = UserInputService.MouseEnabled and not UserInputService.TouchEnabled
 
 -- Cyberpunk Color Palette
 local Colors = {
@@ -42,32 +38,31 @@ local Colors = {
 -- // UTILITY FUNCTIONS
 -- ==========================================================================================================
 
--- Fungsi untuk membuat Instance dengan properti langsung
 local function createInstance(className, properties)
     local instance = Instance.new(className)
     for prop, value in pairs(properties) do
-        instance[prop] = value
+        -- Safety check: Pastikan properti valid sebelum diset (Mencegah error DisplayOrder tadi)
+        if instance:FindProperty(prop) then
+            instance[prop] = value
+        end
     end
     return instance
 end
 
--- Fungsi Tweening yang reusable
 local function tweenObject(object, info, properties)
     local tween = TweenService:Create(object, info, properties)
     tween:Play()
     return tween
 end
 
--- Fungsi untuk mendapatkan timestamp saat ini
 local function getTimestamp()
     local time = os.date("*t")
     return string.format("%02d:%02d:%02d", time.hour, time.min, time.sec)
 end
 
--- Fungsi efek glitch sederhana pada text
 local function glitchText(textLabel, finalText, duration)
     local chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*"
-    local iterations = 10
+    local iterations = 8
     for i = 1, iterations do
         local glitched = ""
         for j = 1, #finalText do
@@ -83,6 +78,26 @@ local function glitchText(textLabel, finalText, duration)
     textLabel.Text = finalText
 end
 
+-- // FETCH AVATAR (FOTO PROFIL KARAKTER)
+-- ==========================================================================================================
+local function getAvatarUrl(userId)
+    -- Menggunakan API thumbnail Roblox untuk mendapatkan gambar kepala (Bust)
+    local url = string.format("https://thumbnails.roblox.com/v1/users/avatar-bust?userIds=%d&size=150x150&format=Png&isCircular=false", userId)
+    local success, result = pcall(function()
+        return game:HttpGet(url)
+    end)
+    
+    if success then
+        local data = HttpService:JSONDecode(result)
+        if data and data.data and #data.data > 0 then
+            return data.data[1].imageUrl
+        end
+    end
+    return nil -- Fallback ke inisial jika gagal
+end
+
+local avatarUrl = getAvatarUrl(player.UserId)
+
 -- // MAIN GUI SETUP
 -- ==========================================================================================================
 
@@ -90,33 +105,38 @@ local screenGui = createInstance("ScreenGui", {
     Name = "ZETHUB_CYBERPUNK_MOBILE_UI",
     ResetOnSpawn = false,
     ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-    IgnoreGuiInset = true, -- Full screen tanpa inset
-    DisplayOrder = 100,    -- Pastikan UI ini di atas UI game default
-    Parent = (syn and syn.protect_gui and (function() syn.protect_gui(screenGui); return game:GetService("CoreGui") end)()) or 
-             (gethui and gethui()) or 
-             playerGui
+    IgnoreGuiInset = true,
+    DisplayOrder = 100, -- Valid di ScreenGui
 })
 
--- // BACKGROUND LAYERS (DisplayOrder: 1)
+-- Safe parent logic
+if syn and syn.protect_gui then
+    syn.protect_gui(screenGui)
+    screenGui.Parent = game:GetService("CoreGui")
+elseif gethui then
+    screenGui.Parent = gethui()
+else
+    screenGui.Parent = playerGui
+end
+
+-- // BACKGROUND LAYERS (Using ZIndex instead of DisplayOrder)
 -- ==========================================================================================================
 
--- Base Black Background
 local baseBackground = createInstance("Frame", {
     Name = "BaseBackground",
     Size = UDim2.new(1, 0, 1, 0),
     BackgroundColor3 = Colors.Background,
     BorderSizePixel = 0,
-    DisplayOrder = 1,
+    ZIndex = 1, -- Perbaikan: Gunakan ZIndex
     Parent = screenGui
 })
 
--- Cyber Grid Background Effect
 local gridBackground = createInstance("Frame", {
     Name = "GridBackground",
     Size = UDim2.new(1, 0, 1, 0),
     BackgroundColor3 = Colors.Background,
     BorderSizePixel = 0,
-    DisplayOrder = 2,
+    ZIndex = 2,
     Parent = baseBackground
 })
 
@@ -130,28 +150,26 @@ local gridGradient = createInstance("UIGradient", {
     Parent = gridBackground
 })
 
--- Animasi Grid Bergerak
 task.spawn(function()
     local offset = 0
     while screenGui and screenGui.Parent do
-        offset = (offset + 0.001) % 1
+        offset = (offset + 0.002) % 1
         gridGradient.Offset = Vector2.new(0, offset)
         task.wait()
     end
 end)
 
--- Scanline Overlay Effect
 local scanlineOverlay = createInstance("Frame", {
     Name = "ScanlineOverlay",
     Size = UDim2.new(1, 0, 1, 0),
     BackgroundColor3 = Colors.Background,
     BackgroundTransparency = 0.9,
     BorderSizePixel = 0,
-    DisplayOrder = 3,
+    ZIndex = 3,
     Parent = baseBackground
 })
 
-local scanlineGradient = createInstance("UIGradient", {
+createInstance("UIGradient", {
     Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 255, 65)),
         ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 0, 0)),
@@ -166,17 +184,17 @@ local scanlineGradient = createInstance("UIGradient", {
     Parent = scanlineOverlay
 })
 
--- // WATERMARK (Moved to Top-Right, DisplayOrder: 100)
+-- // WATERMARK (Top Right)
 -- ==========================================================================================================
 
 local watermark = createInstance("Frame", {
     Name = "Watermark",
     Size = UDim2.new(0, 220, 0, 30),
-    Position = UDim2.new(1, -230, 0, 10), -- Posisi Kanan Atas
+    Position = UDim2.new(1, -230, 0, 10),
     BackgroundColor3 = Colors.Surface,
     BackgroundTransparency = 0.2,
     BorderSizePixel = 0,
-    DisplayOrder = 100, -- Paling atas
+    ZIndex = 100,
     Parent = screenGui
 })
 
@@ -186,14 +204,13 @@ createInstance("UIStroke", {Color = Colors.Primary, Thickness = 1, Transparency 
 local watermarkText = createInstance("TextLabel", {
     Size = UDim2.new(1, 0, 1, 0),
     BackgroundTransparency = 1,
-    Text = "⚡ ZETHUB V-MAX | SECURE CONNECTION",
+    Text = "⚡ ZETHUB v4.0 | SECURE CONNECTION",
     Font = Enum.Font.Code,
     TextSize = 12,
     TextColor3 = Colors.Primary,
     Parent = watermark
 })
 
--- Animasi Watermark Berkedip
 task.spawn(function()
     while screenGui and screenGui.Parent do
         tweenObject(watermarkText, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {TextTransparency = 0.2})
@@ -203,30 +220,32 @@ task.spawn(function()
     end
 end)
 
--- // MAIN CONTAINER (DisplayOrder: 10)
+-- // MAIN CONTAINER
 -- ==========================================================================================================
 
 local mainContainer = createInstance("Frame", {
     Name = "MainContainer",
-    Size = UDim2.new(0.95, 0, 0.90, 0), -- Hampir full screen di HP
+    Size = UDim2.new(0.95, 0, 0.90, 0),
     Position = UDim2.new(0.025, 0, 0.05, 0),
     BackgroundColor3 = Colors.Surface,
     BorderSizePixel = 0,
     ClipsDescendants = true,
-    DisplayOrder = 10,
+    ZIndex = 10,
     Parent = baseBackground
 })
 
 createInstance("UICorner", {CornerRadius = UDim.new(0, 16), Parent = mainContainer})
 createInstance("UIStroke", {Name = "MainStroke", Color = Colors.PrimaryDim, Thickness = 2, Parent = mainContainer})
 
--- Animasi Border RGB Sederhana
 task.spawn(function()
-    local hue = 0.33 -- Mulai dari hijau
+    local hue = 0.33
     while screenGui and screenGui.Parent do
         hue = (hue + 0.002) % 1
         local color = Color3.fromHSV(hue, 0.8, 1)
-        tweenObject(mainContainer:FindFirstChild("MainStroke"), TweenInfo.new(0.1), {Color = color})
+        local stroke = mainContainer:FindFirstChild("MainStroke")
+        if stroke then
+            tweenObject(stroke, TweenInfo.new(0.1), {Color = color})
+        end
         task.wait(0.05)
     end
 end)
@@ -239,15 +258,17 @@ local header = createInstance("Frame", {
     Size = UDim2.new(1, 0, 0, 60),
     BackgroundColor3 = Colors.SurfaceLight,
     BorderSizePixel = 0,
+    ZIndex = 11,
     Parent = mainContainer
 })
 
 createInstance("UICorner", {CornerRadius = UDim.new(0, 16), Parent = header})
-createInstance("Frame", { -- Fix bottom corner
+createInstance("Frame", {
     Size = UDim2.new(1, 0, 0, 16),
     Position = UDim2.new(0, 0, 1, -16),
     BackgroundColor3 = Colors.SurfaceLight,
     BorderSizePixel = 0,
+    ZIndex = 11,
     Parent = header
 })
 
@@ -261,6 +282,7 @@ local headerTitle = createInstance("TextLabel", {
     TextSize = 22,
     TextColor3 = Colors.TextMain,
     TextXAlignment = Enum.TextXAlignment.Left,
+    ZIndex = 12,
     Parent = header
 })
 
@@ -269,15 +291,16 @@ local deviceStatus = createInstance("TextLabel", {
     Size = UDim2.new(0, 50, 1, 0),
     Position = UDim2.new(1, -55, 0, 0),
     BackgroundTransparency = 1,
-    Text = isMobile and "" or "",
+    Text = isMobile and "📱" or "💻",
     Font = Enum.Font.GothamBold,
     TextSize = 24,
     TextColor3 = Colors.Primary,
     TextXAlignment = Enum.TextXAlignment.Right,
+    ZIndex = 12,
     Parent = header
 })
 
--- // PROFILE SECTION
+-- // PROFILE SECTION (With Real Avatar)
 -- ==========================================================================================================
 
 local profileSection = createInstance("Frame", {
@@ -286,32 +309,50 @@ local profileSection = createInstance("Frame", {
     Position = UDim2.new(0.03, 0, 0, 75),
     BackgroundColor3 = Colors.SurfaceLight,
     BorderSizePixel = 0,
+    ZIndex = 11,
     Parent = mainContainer
 })
 
 createInstance("UICorner", {CornerRadius = UDim.new(0, 10), Parent = profileSection})
 createInstance("UIStroke", {Color = Colors.PrimaryDim, Thickness = 1, Transparency = 0.7, Parent = profileSection})
 
--- Avatar Placeholder
+-- Avatar Image (Real Character Photo)
 local avatarFrame = createInstance("Frame", {
     Name = "AvatarFrame",
     Size = UDim2.new(0, 50, 0, 50),
     Position = UDim2.new(0, 15, 0, 15),
-    BackgroundColor3 = Colors.Primary,
+    BackgroundColor3 = Colors.Surface,
     BorderSizePixel = 0,
+    ClipsDescendants = true,
+    ZIndex = 12,
     Parent = profileSection
 })
 createInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = avatarFrame})
 
-local avatarIcon = createInstance("TextLabel", {
-    Size = UDim2.new(1, 0, 1, 0),
-    BackgroundTransparency = 1,
-    Text = string.sub(player.Name, 1, 2):upper(),
-    Font = Enum.Font.GothamBlack,
-    TextSize = 20,
-    TextColor3 = Colors.Background,
-    Parent = avatarFrame
-})
+if avatarUrl then
+    -- Jika berhasil ambil foto
+    createInstance("ImageLabel", {
+        Size = UDim2.new(1.2, 0, 1.2, 0), -- Sedikit lebih besar untuk crop
+        Position = UDim2.new(-0.1, 0, -0.1, 0),
+        BackgroundTransparency = 1,
+        Image = avatarUrl,
+        ScaleType = Enum.ScaleType.Crop,
+        ZIndex = 13,
+        Parent = avatarFrame
+    })
+else
+    -- Fallback jika gagal ambil foto (Inisial Nama)
+    createInstance("TextLabel", {
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        Text = string.sub(player.Name, 1, 2):upper(),
+        Font = Enum.Font.GothamBlack,
+        TextSize = 20,
+        TextColor3 = Colors.Primary,
+        ZIndex = 13,
+        Parent = avatarFrame
+    })
+end
 
 -- User Info
 local usernameLabel = createInstance("TextLabel", {
@@ -324,6 +365,7 @@ local usernameLabel = createInstance("TextLabel", {
     TextSize = 18,
     TextColor3 = Colors.TextMain,
     TextXAlignment = Enum.TextXAlignment.Left,
+    ZIndex = 12,
     Parent = profileSection
 })
 
@@ -337,6 +379,7 @@ local userIdLabel = createInstance("TextLabel", {
     TextSize = 12,
     TextColor3 = Colors.TextDim,
     TextXAlignment = Enum.TextXAlignment.Left,
+    ZIndex = 12,
     Parent = profileSection
 })
 
@@ -345,11 +388,12 @@ local rankLabel = createInstance("TextLabel", {
     Size = UDim2.new(1, -80, 0, 20),
     Position = UDim2.new(0, 75, 0, 52),
     BackgroundTransparency = 1,
-    Text = "STATUS: OPERATIONAL",
+    Text = "STATUS: PREMIUM OPERATOR",
     Font = Enum.Font.Code,
     TextSize = 11,
     TextColor3 = Colors.Primary,
     TextXAlignment = Enum.TextXAlignment.Left,
+    ZIndex = 12,
     Parent = profileSection
 })
 
@@ -361,16 +405,17 @@ local checkSection = createInstance("Frame", {
     Size = UDim2.new(0.94, 0, 0, 100),
     Position = UDim2.new(0.03, 0, 0, 170),
     BackgroundTransparency = 1,
+    ZIndex = 11,
     Parent = mainContainer
 })
 
--- Green "O" Checking Indicator
 local indicatorFrame = createInstance("Frame", {
     Name = "IndicatorFrame",
     Size = UDim2.new(0, 60, 0, 60),
     Position = UDim2.new(0, 0, 0, 0),
     BackgroundColor3 = Colors.SurfaceLight,
     BorderSizePixel = 0,
+    ZIndex = 12,
     Parent = checkSection
 })
 createInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = indicatorFrame})
@@ -379,6 +424,7 @@ local indicatorStroke = createInstance("UIStroke", {
     Name = "IndicatorStroke",
     Color = Colors.Warning,
     Thickness = 4,
+    ZIndex = 12,
     Parent = indicatorFrame
 })
 
@@ -390,10 +436,10 @@ local indicatorText = createInstance("TextLabel", {
     Font = Enum.Font.GothamBlack,
     TextSize = 28,
     TextColor3 = Colors.Warning,
+    ZIndex = 13,
     Parent = indicatorFrame
 })
 
--- Animasi Spinner untuk Indicator
 task.spawn(function()
     local rotation = 0
     while screenGui and screenGui.Parent do
@@ -403,7 +449,6 @@ task.spawn(function()
     end
 end)
 
--- Current Task Text
 local currentTaskLabel = createInstance("TextLabel", {
     Name = "CurrentTaskLabel",
     Size = UDim2.new(1, -80, 0, 30),
@@ -414,6 +459,7 @@ local currentTaskLabel = createInstance("TextLabel", {
     TextSize = 16,
     TextColor3 = Colors.TextMain,
     TextXAlignment = Enum.TextXAlignment.Left,
+    ZIndex = 12,
     Parent = checkSection
 })
 
@@ -427,38 +473,39 @@ local subTaskLabel = createInstance("TextLabel", {
     TextSize = 11,
     TextColor3 = Colors.TextDim,
     TextXAlignment = Enum.TextXAlignment.Left,
+    ZIndex = 12,
     Parent = checkSection
 })
 
--- Progress Bar Container
 local progressContainer = createInstance("Frame", {
     Name = "ProgressContainer",
     Size = UDim2.new(1, -80, 0, 12),
     Position = UDim2.new(0, 75, 0, 60),
     BackgroundColor3 = Colors.Background,
     BorderSizePixel = 0,
+    ZIndex = 12,
     Parent = checkSection
 })
 createInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = progressContainer})
-createInstance("UIStroke", {Color = Colors.SurfaceLight, Thickness = 1, Parent = progressContainer})
+createInstance("UIStroke", {Color = Colors.SurfaceLight, Thickness = 1, ZIndex = 12, Parent = progressContainer})
 
--- Progress Bar Fill
 local progressFill = createInstance("Frame", {
     Name = "ProgressFill",
     Size = UDim2.new(0, 0, 1, 0),
     BackgroundColor3 = Colors.Primary,
     BorderSizePixel = 0,
+    ZIndex = 13,
     Parent = progressContainer
 })
 createInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = progressFill})
 
--- Progress Glow Effect
-local progressGlow = createInstance("UIGradient", {
+createInstance("UIGradient", {
     Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Colors.PrimaryDim),
         ColorSequenceKeypoint.new(0.5, Colors.Primary),
         ColorSequenceKeypoint.new(1, Colors.Secondary)
     }),
+    ZIndex = 13,
     Parent = progressFill
 })
 
@@ -471,6 +518,7 @@ local progressText = createInstance("TextLabel", {
     TextSize = 11,
     TextColor3 = Colors.Primary,
     TextXAlignment = Enum.TextXAlignment.Right,
+    ZIndex = 14,
     Parent = progressContainer
 })
 
@@ -479,14 +527,15 @@ local progressText = createInstance("TextLabel", {
 
 local consoleSection = createInstance("Frame", {
     Name = "ConsoleSection",
-    Size = UDim2.new(0.94, 0, 1, -340), -- Sisa ruang
+    Size = UDim2.new(0.94, 0, 1, -340),
     Position = UDim2.new(0.03, 0, 0, 285),
     BackgroundColor3 = Colors.Background,
     BorderSizePixel = 0,
+    ZIndex = 11,
     Parent = mainContainer
 })
 createInstance("UICorner", {CornerRadius = UDim.new(0, 10), Parent = consoleSection})
-createInstance("UIStroke", {Color = Colors.SurfaceLight, Thickness = 1, Parent = consoleSection})
+createInstance("UIStroke", {Color = Colors.SurfaceLight, Thickness = 1, ZIndex = 11, Parent = consoleSection})
 
 local consoleScroll = createInstance("ScrollingFrame", {
     Name = "ConsoleScroll",
@@ -497,17 +546,18 @@ local consoleScroll = createInstance("ScrollingFrame", {
     ScrollBarImageColor3 = Colors.Primary,
     CanvasSize = UDim2.new(0, 0, 0, 0),
     AutomaticCanvasSize = Enum.AutomaticSize.Y,
+    ZIndex = 12,
     Parent = consoleSection
 })
 createInstance("UICorner", {CornerRadius = UDim.new(0, 10), Parent = consoleScroll})
 
-local consoleList = createInstance("UIListLayout", {
+createInstance("UIListLayout", {
     Padding = UDim.new(0, 2),
     SortOrder = Enum.SortOrder.LayoutOrder,
     Parent = consoleScroll
 })
 
-local consolePadding = createInstance("UIPadding", {
+createInstance("UIPadding", {
     PaddingTop = UDim.new(0, 8),
     PaddingBottom = UDim.new(0, 8),
     PaddingLeft = UDim.new(0, 8),
@@ -515,7 +565,6 @@ local consolePadding = createInstance("UIPadding", {
     Parent = consoleScroll
 })
 
--- Fungsi untuk menambah log ke console
 local logOrder = 0
 local function addLog(message, status)
     logOrder = logOrder + 1
@@ -525,10 +574,11 @@ local function addLog(message, status)
         Size = UDim2.new(1, 0, 0, 24),
         BackgroundTransparency = 1,
         LayoutOrder = logOrder,
+        ZIndex = 12,
         Parent = consoleScroll
     })
     
-    local timestamp = createInstance("TextLabel", {
+    createInstance("TextLabel", {
         Size = UDim2.new(0, 65, 1, 0),
         BackgroundTransparency = 1,
         Text = "[" .. getTimestamp() .. "]",
@@ -536,6 +586,7 @@ local function addLog(message, status)
         TextSize = 10,
         TextColor3 = Colors.TextDim,
         TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 13,
         Parent = logEntry
     })
     
@@ -549,10 +600,11 @@ local function addLog(message, status)
         TextSize = 14,
         TextColor3 = Colors.Warning,
         TextXAlignment = Enum.TextXAlignment.Center,
+        ZIndex = 13,
         Parent = logEntry
     })
     
-    local messageText = createInstance("TextLabel", {
+    createInstance("TextLabel", {
         Name = "MessageText",
         Size = UDim2.new(1, -90, 1, 0),
         Position = UDim2.new(0, 85, 0, 0),
@@ -562,10 +614,10 @@ local function addLog(message, status)
         TextSize = 11,
         TextColor3 = Colors.TextMain,
         TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 13,
         Parent = logEntry
     })
     
-    -- Auto scroll ke bawah
     task.spawn(function()
         task.wait(0.1)
         consoleScroll.CanvasPosition = Vector2.new(0, consoleScroll.AbsoluteCanvasSize.Y)
@@ -574,22 +626,20 @@ local function addLog(message, status)
     return statusIcon
 end
 
--- Fungsi untuk mengupdate status icon menjadi "O" Hijau
 local function markLogSuccess(statusIcon)
     if statusIcon then
         statusIcon.Text = "O"
         statusIcon.TextColor3 = Colors.Primary
         tweenObject(statusIcon, TweenInfo.new(0.3), {TextTransparency = 0})
         
-        -- Efek glow sesaat
-        local glow = createInstance("UIStroke", {Color = Colors.Primary, Thickness = 0, Parent = statusIcon})
+        local glow = createInstance("UIStroke", {Color = Colors.Primary, Thickness = 0, ZIndex = 14, Parent = statusIcon})
         tweenObject(glow, TweenInfo.new(0.3), {Thickness = 2})
         task.wait(0.5)
         tweenObject(glow, TweenInfo.new(0.3), {Thickness = 0})
     end
 end
 
--- // CONTINUE BUTTON (Hidden Initially)
+-- // CONTINUE BUTTON
 -- ==========================================================================================================
 
 local continueButton = createInstance("TextButton", {
@@ -598,26 +648,27 @@ local continueButton = createInstance("TextButton", {
     Position = UDim2.new(0.03, 0, 1, -65),
     BackgroundColor3 = Colors.Primary,
     BorderSizePixel = 0,
-    Text = "CONTINUE/FINISHED",
+    Text = "INITIALIZE SYSTEM // CONTINUE",
     Font = Enum.Font.GothamBlack,
     TextSize = 18,
     TextColor3 = Colors.Background,
     Visible = false,
+    ZIndex = 20,
     Parent = mainContainer
 })
 createInstance("UICorner", {CornerRadius = UDim.new(0, 10), Parent = continueButton})
 
-local buttonGlow = createInstance("UIGradient", {
+createInstance("UIGradient", {
     Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Colors.PrimaryDim),
         ColorSequenceKeypoint.new(0.5, Colors.Primary),
         ColorSequenceKeypoint.new(1, Colors.PrimaryDim)
     }),
     Rotation = 90,
+    ZIndex = 20,
     Parent = continueButton
 })
 
--- Animasi tombol continue berdenyut
 task.spawn(function()
     while screenGui and screenGui.Parent do
         if continueButton.Visible then
@@ -631,9 +682,7 @@ task.spawn(function()
     end
 end)
 
--- Continue Button Action
 continueButton.MouseButton1Click:Connect(function()
-    -- Efek shutdown
     currentTaskLabel.Text = "SYSTEM PURGE INITIATED"
     currentTaskLabel.TextColor3 = Colors.Primary
     indicatorText.Text = "✓"
@@ -655,7 +704,7 @@ continueButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- // EXECUTION LOGIC
+-- // EXECUTION LOGIC (Safe Load)
 -- ==========================================================================================================
 
 local function updateProgress(percent, taskName, subTaskName)
@@ -675,8 +724,14 @@ local function executeStage(stageName, url, progressStart, progressEnd)
     updateProgress(progressStart, "INJECTING MODULE", stageName)
     task.wait(1.5)
     
+    -- Safe Load Logic
     local success, err = pcall(function()
-        loadstring(game:HttpGet(url))()
+        local source = game:HttpGet(url)
+        if source and #source > 10 then -- Cek apakah script tidak kosong
+            loadstring(source)()
+        else
+            error("Script source empty or invalid")
+        end
     end)
     
     if success then
@@ -695,7 +750,6 @@ end
 
 -- Main Checking Sequence
 task.spawn(function()
-    -- Mobile Warning (Optional, tapi tetap lanjut)
     if not isMobile then
         addLog("WARNING: System optimized for Mobile", "warning")
         task.wait(1)
@@ -709,7 +763,6 @@ task.spawn(function()
     updateProgress(10, "ENVIRONMENT SCAN", "Verifying hardware constraints")
     task.wait(1.5)
     
-    -- Stage 1: Mobile Keyboard (Khusus Mobile)
     if isMobile then
         executeStage(
             "Delta Mobile Keyboard",
@@ -721,21 +774,18 @@ task.spawn(function()
         task.wait(1)
     end
     
-    -- Stage 2: Anti-Cheat V1
     executeStage(
         "Anti-Cheat Remover V1",
         "https://raw.githubusercontent.com/c00lhaxOFFICAL/GrayScriptsAntiCheatRemoverV2LITE/refs/heads/main/GrayGrayGray",
         40, 55
     )
     
-    -- Stage 3: Anti-Cheat V2
     executeStage(
         "Anti-Cheat Remover V2 PLUS",
         "https://raw.githubusercontent.com/c00lhaxOFFICAL/GrayScriptsAntiCheatRemoverV2PLUS/refs/heads/main/V2PLUS",
         60, 75
     )
     
-    -- Stage 4: Infinite Yield
     local iyUrl = isMobile 
         and "https://rawscripts.net/raw/Universal-Script-Infinite-Yield-Bypass-Anticheat-open-source-194150"
         or "https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"
@@ -746,27 +796,23 @@ task.spawn(function()
         80, 90
     )
     
-    -- Stage 5: ZETHUB Core
     executeStage(
         "ZETHUB Core Framework",
         "https://raw.githubusercontent.com/Zyptrue/ZETHUB/refs/heads/main/Main%20Script",
         95, 100
     )
     
-    -- Finalization
     updateProgress(100, "SYSTEM READY", "All modules verified and operational")
     addLog("========================================", "info")
     addLog("ALL SCRIPTS LOADED SUCCESSFULLY", "success")
-    addLog("ZETHUB V-Max is now active", "success")
+    addLog("ZETHUB v4.0 is now active", "success")
     addLog("========================================", "info")
     
-    -- Ubah indicator menjadi centang hijau besar
     indicatorFrame.Rotation = 0
     indicatorText.Text = "✓"
     indicatorText.TextColor3 = Colors.Primary
     indicatorStroke.Color = Colors.Primary
     
-    -- Tampilkan tombol continue dengan animasi
     task.wait(1)
     continueButton.Visible = true
     tweenObject(continueButton, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
@@ -775,7 +821,7 @@ task.spawn(function()
     })
 end)
 
--- // DRAGGABLE FUNCTIONALITY (Untuk Mobile & PC)
+-- // DRAGGABLE FUNCTIONALITY
 -- ==========================================================================================================
 task.spawn(function()
     local dragging = false
@@ -806,7 +852,6 @@ task.spawn(function()
             local delta = input.Position - dragStart
             local viewport = workspace.CurrentCamera.ViewportSize
             
-            -- Batasi agar tidak keluar layar
             local newX = math.clamp(startPos.X.Offset + delta.X, 0, viewport.X - mainContainer.AbsoluteSize.X)
             local newY = math.clamp(startPos.Y.Offset + delta.Y, 0, viewport.Y - mainContainer.AbsoluteSize.Y)
             
@@ -814,7 +859,3 @@ task.spawn(function()
         end
     end)
 end)
-
--- ==========================================================================================================
--- END OF ZETHUB CYBERPUNK MOBILE SCRIPT
--- ==========================================================================================================
